@@ -44,8 +44,8 @@
     <div class="events-filter">
         <div class="search-bar">
             <i class="fas fa-search search-icon"></i>
-            <input type="text" placeholder="Rechercher un événement...">
-            <button type="submit">Rechercher</button>
+            <input type="text" placeholder="Rechercher un événement..." id="search-input" autocomplete="off">
+            <button type="submit"><i class="fas fa-arrow-right"></i> Rechercher</button>
         </div>
         <div class="filter-options">
             <div class="filter-group">
@@ -84,11 +84,14 @@
         </div>
     </div>
     
-    <div class="filter-tags">
-        <div class="filter-tag active">Tous <i class="fas fa-times"></i></div>
-        <div class="filter-tag">Cette semaine <i class="fas fa-times"></i></div>
-        <div class="filter-tag">Concerts <i class="fas fa-times"></i></div>
-        <div class="filter-tag">Paris <i class="fas fa-times"></i></div>
+    <!-- Tags de filtres actifs -->
+    <div class="filter-tags-container">
+        <div class="filter-tags">
+            <div class="filter-tag active">Tous <i class="fas fa-times"></i></div>
+            <div class="filter-tag">Cette semaine <i class="fas fa-times"></i></div>
+            <div class="filter-tag">Concerts <i class="fas fa-times"></i></div>
+            <div class="filter-tag">Paris <i class="fas fa-times"></i></div>
+        </div>
     </div>
     
     <div class="events-grid">
@@ -562,6 +565,12 @@
 {% endblock %}
 
 {% block extra_js %}
+<!-- GSAP pour les animations -->  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+<!-- Script personnalisé pour la barre de recherche -->  
+<script src="{% static 'js/search.js' %}"></script>
+
 <script>
     // Code pour gérer les likes (simulé pour le frontend)
     document.querySelectorAll('.like-btn').forEach(button => {

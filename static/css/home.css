@@ -155,6 +155,25 @@
     flex-wrap: wrap;
 }
 
+/* Style spécifique pour le bouton outline dans le hero */
+.hero-buttons .btn-outline {
+    background-color: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(10px);
+    border: 2.5px solid rgba(255, 255, 255, 0.9);
+    color: white;
+    text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3), inset 0 1px 0px rgba(255, 255, 255, 0.4);
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.hero-buttons .btn-outline:hover {
+    background-color: rgba(255, 255, 255, 0.25);
+    border-color: white;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
 .hero-stats {
     display: flex;
     justify-content: center;
@@ -215,95 +234,183 @@
 .events-filter {
     display: flex;
     justify-content: space-between;
-    align-items: stretch;
+    align-items: center;
     margin-bottom: 30px;
     flex-wrap: wrap;
-    gap: 15px;
+    gap: 20px;
     background-color: white;
-    padding: 15px;
+    padding: 20px;
     border-radius: var(--border-radius);
     box-shadow: var(--box-shadow);
     margin-left: 20px;
     margin-right: 20px;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+
+.events-filter:hover {
+    border-color: var(--primary-light);
+    box-shadow: 0 8px 30px rgba(93, 74, 219, 0.1);
+    transform: translateY(-2px);
 }
 
 .search-bar {
     display: flex;
     position: relative;
     flex: 1;
-    min-width: 300px;
+    min-width: 350px;
     align-items: center;
+    background-color: var(--background-color);
+    border-radius: 30px;
+    padding: 5px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05) inset;
+    transition: all 0.3s ease;
+}
+
+.search-bar:focus-within {
+    box-shadow: 0 0 0 2px var(--primary-light), 0 2px 10px rgba(0, 0, 0, 0.05) inset;
 }
 
 .search-icon {
     position: absolute;
-    left: 12px;
+    left: 15px;
     top: 50%;
     transform: translateY(-50%);
-    color: var(--text-light);
-    z-index: 2;
+    color: var(--primary-color);
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+.search-bar:focus-within .search-icon {
+    color: var(--primary-dark);
 }
 
 .search-bar input {
     padding: 12px 20px 12px 40px;
-    border: 1px solid var(--border-color);
-    border-radius: 30px 0 0 30px;
+    border: none;
+    border-radius: 30px;
     flex: 1;
-    font-size: 14px;
+    font-size: 15px;
     outline: none;
     transition: all 0.3s;
     height: 46px;
+    background-color: transparent;
+    font-weight: 500;
+    width: 100%;
+}
+
+.search-bar input::placeholder {
+    color: var(--text-light);
+    opacity: 0.6;
+    transition: all 0.3s ease;
+}
+
+.search-bar input:focus::placeholder {
+    opacity: 0.4;
+    transform: translateX(5px);
 }
 
 .search-bar button {
     background: var(--gradient-primary);
     color: white;
     border: none;
-    padding: 0 25px;
-    border-radius: 0 30px 30px 0;
+    padding: 0 25px 0 20px;
+    border-radius: 30px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s;
-    height: 46px;
+    transition: all 0.3s ease;
+    height: 42px;
+    margin-right: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 4px 10px rgba(93, 74, 219, 0.2);
+}
+
+.search-bar button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(93, 74, 219, 0.3);
+    background-image: linear-gradient(to right, var(--primary-dark), var(--primary-color));
+}
+
+.search-bar button:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 5px rgba(93, 74, 219, 0.2);
 }
 
 .filter-options {
     display: flex;
-    gap: 10px;
+    gap: 15px;
     flex-wrap: wrap;
     align-items: center;
+    transition: all 0.3s ease;
 }
 
 .filter-group {
     position: relative;
+    transition: all 0.3s ease;
+}
+
+.filter-group:hover {
+    transform: translateY(-2px);
+}
+
+.filter-group i {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--primary-color);
+    z-index: 1;
+    transition: all 0.2s ease;
+}
+
+.filter-group:hover i {
+    color: var(--primary-dark);
 }
 
 .filter-group select {
-    padding-left: 35px;
-    min-width: 150px;
+    padding-left: 38px;
+    min-width: 160px;
     appearance: none;
-    background-color: white;
-    border: 1px solid var(--border-color);
+    background-color: var(--background-color);
+    border: none;
     border-radius: 30px;
-    padding: 12px 40px 12px 35px;
+    padding: 12px 40px 12px 38px;
     cursor: pointer;
     outline: none;
     transition: all 0.3s;
     font-size: 14px;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23757575' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%235d4adb' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: calc(100% - 15px) center;
-    background-size: 16px;
+    background-size: 14px;
     height: 46px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05) inset;
+    font-weight: 500;
+}
+
+.filter-group select:focus {
+    box-shadow: 0 0 0 2px var(--primary-light), 0 2px 10px rgba(0, 0, 0, 0.05) inset;
+}
+
+.filter-group select:hover {
+    background-color: var(--primary-light);
+}
+
+.filter-tags-container {
+    padding: 0 20px;
+    margin-bottom: 30px;
 }
 
 .filter-tags {
     display: flex;
     gap: 10px;
     flex-wrap: wrap;
-    margin-bottom: 30px;
-    margin-left: 20px;
-    margin-right: 20px;
+    margin-top: 15px;
+    min-height: 35px;
+    transition: all 0.3s ease;
 }
 
 .filter-tag {
@@ -316,17 +423,30 @@
     font-size: 13px;
     color: var(--text-light);
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    font-weight: 500;
+    opacity: 1;
+    transform: translateY(0);
 }
 
 .filter-tag i {
     margin-left: 8px;
     font-size: 10px;
+    opacity: 0.7;
+    transition: all 0.2s ease;
+}
+
+.filter-tag:hover i {
+    opacity: 1;
+    transform: scale(1.1);
 }
 
 .filter-tag:hover {
     border-color: var(--primary-color);
     color: var(--primary-color);
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(93, 74, 219, 0.15);
 }
 
 .filter-tag.active {
@@ -334,6 +454,23 @@
     border-color: var(--primary-color);
     color: var(--primary-dark);
     font-weight: 600;
+    box-shadow: 0 4px 15px rgba(93, 74, 219, 0.2);
+}
+
+/* Animation d'apparition pour les nouveaux tags */
+@keyframes tagAppear {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.filter-tag.new {
+    animation: tagAppear 0.3s ease-out forwards;
 }
 
 /* Pagination */

@@ -73,7 +73,6 @@ def event_detail(request, event_id):
         'comments': comments
     })
 
-@login_required
 def create_event(request):
     if request.method == 'POST':
         # Dans un contexte réel, on utiliserait un formulaire Django
@@ -110,11 +109,79 @@ def register_for_event(request, event_id):
             return redirect('event_detail', event_id=event_id)
         
         # En mode statique, simuler une réservation réussie
-        messages.success(request, 'Réservation effectuée avec succès!')
-        return redirect('event_detail', event_id=event_id)
+        # Dans un cas réel, nous créerions une réservation dans la base de données
+        try:
+            event = Event.objects.get(pk=event_id) if Event.objects.exists() else None
+            
+            # Si nous avons un objet event, créer une réservation
+            if event:
+                booking = EventRegistration.objects.create(
+                    event=event,
+                    user=request.user,
+                    name=name,
+                    email=email,
+                    num_seats=num_seats,
+                    payment_status='completed' if event.price > 0 else 'pending'
+                )
+                # Rediriger vers la page de confirmation avec l'ID de la réservation
+                return redirect('booking_confirmation', event_id=event_id, booking_id=booking.id)
+            else:
+                # En mode statique/démo, on simule avec l'ID 1
+                messages.success(request, 'Réservation effectuée avec succès!')
+                return redirect('booking_confirmation', event_id=event_id, booking_id=1)
+                
+        except Exception as e:
+            messages.error(request, f'Une erreur est survenue lors de la réservation: {str(e)}')
+            return redirect('event_detail', event_id=event_id)
     
     # Si ce n'est pas un POST, rediriger vers la page de détails
     return redirect('event_detail', event_id=event_id)
+
+# Page de confirmation de réservation
+@login_required
+def booking_confirmation(request, event_id, booking_id):
+    # En mode statique/démo, simuler une réservation et un événement
+    try:
+        event = Event.objects.get(pk=event_id) if Event.objects.exists() else None
+        booking = EventRegistration.objects.get(pk=booking_id) if EventRegistration.objects.exists() else None
+
+        if not event or not booking:
+            # Simuler des données pour la démo
+            event = {
+                'title': 'Concert de Jazz',
+                'description': 'Une soirée exceptionnelle avec les meilleurs artistes de jazz.',
+                'date': timezone.now() + timezone.timedelta(days=10),
+                'location': 'Salle Pleyel, Paris',
+                'total_seats': 200,
+                'remaining_seats': 150,
+                'price': 25.00,
+            }
+            
+            booking = {
+                'id': booking_id,
+                'name': request.user.username if hasattr(request, 'user') else 'Jean Dupont',
+                'email': request.user.email if hasattr(request, 'user') else 'utilisateur@exemple.com',
+                'num_seats': 2,
+                'registration_date': timezone.now(),
+                'payment_status': 'completed',
+                'payment_status_display': 'Payé'
+            }
+        
+        # Calculer le prix total
+        if isinstance(event, dict):
+            total_price = event['price'] * booking['num_seats'] if 'price' in event and 'num_seats' in booking else 0
+        else:
+            total_price = event.price * booking.num_seats
+            
+        return render(request, 'event_manager/booking_confirmation.html', {
+            'event': event,
+            'booking': booking,
+            'total_price': total_price
+        })
+        
+    except Exception as e:
+        messages.error(request, f"Une erreur est survenue lors de l'affichage de la confirmation: {str(e)}")
+        return redirect('home')
 
 # Gestion des commentaires
 @login_required

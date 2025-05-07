@@ -108,8 +108,12 @@ a:hover {
 }
 
 .btn-primary {
-    background: var(--gradient-primary);
+    background: linear-gradient(135deg, #6a5be2, #4233b3); /* Gradient plus foncé et contrasté */
     color: white;
+    text-shadow: 0px 1px 3px rgba(0, 0, 0, 0.5); /* Ombre plus prononcée */
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 15px rgba(93, 74, 219, 0.3), inset 0 1px 0px rgba(255, 255, 255, 0.3);
 }
 
 .btn-primary:hover {
@@ -128,14 +132,20 @@ a:hover {
 }
 
 .btn-outline {
-    background-color: transparent;
+    background: transparent;
     border: 2px solid var(--primary-color);
     color: var(--primary-color);
+    padding: 10px 20px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    text-shadow: 0px 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .btn-outline:hover {
     background-color: var(--primary-light);
     transform: translateY(-3px);
+    color: white;
+    text-shadow: 0px 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .btn-block {
