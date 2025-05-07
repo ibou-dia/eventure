@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Inscription | ÉvénementsCo{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/forms.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <h2 class="auth-title">Créer un compte</h2>
+        
+        <form method="post" action="{% url 'register' %}" class="auth-form">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="username">Nom d'utilisateur</label>
+                <input type="text" name="username" id="username" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Adresse email</label>
+                <input type="email" name="email" id="email" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password1">Mot de passe</label>
+                <input type="password" name="password1" id="password1" required>
+                <small>Utilisez au moins 8 caractères avec des lettres et des chiffres.</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="password2">Confirmer le mot de passe</label>
+                <input type="password" name="password2" id="password2" required>
+            </div>
+            
+            <div class="form-group">
+                <div class="terms-check">
+                    <input type="checkbox" name="terms" id="terms" required>
+                    <label for="terms">J'accepte les <a href="#">conditions d'utilisation</a> et la <a href="#">politique de confidentialité</a></label>
+                </div>
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary btn-block">S'inscrire</button>
+            </div>
+        </form>
+        
+        <div class="auth-footer">
+            <p>Vous avez déjà un compte ? <a href="{% url 'login' %}">Se connecter</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Validation du formulaire
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const password1 = document.getElementById('password1').value;
+        const password2 = document.getElementById('password2').value;
+        
+        if (password1 !== password2) {
+            e.preventDefault();
+            alert('Les mots de passe ne correspondent pas.');
+        } else if (password1.length < 8) {
+            e.preventDefault();
+            alert('Le mot de passe doit contenir au moins 8 caractères.');
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,591 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Accueil | ÉvénementsCo{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <div class="hero-shapes">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+        <div class="shape shape-3"></div>
+    </div>
+    <div class="hero-content">
+        <div class="hero-badge">La meilleure façon de découvrir des événements</div>
+        <h1>Trouvez et réservez des <span class="highlight">expériences</span> inoubliables</h1>
+        <p>Découvrez des concerts, festivals, conférences et bien plus encore. Rejoignez notre communauté d'événements passionnants près de chez vous.</p>
+        <div class="hero-buttons">
+            <a href="#events-list" class="btn btn-primary"><i class="fas fa-search"></i> Découvrir</a>
+            <a href="{% url 'create_event' %}" class="btn btn-outline"><i class="fas fa-plus-circle"></i> Créer un événement</a>
+        </div>
+        <div class="hero-stats">
+            <div class="stat">
+                <span class="stat-number">500+</span>
+                <span class="stat-label">Événements</span>
+            </div>
+            <div class="stat">
+                <span class="stat-number">10k+</span>
+                <span class="stat-label">Utilisateurs</span>
+            </div>
+            <div class="stat">
+                <span class="stat-number">50+</span>
+                <span class="stat-label">Villes</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="events-list" class="events-container">
+    <div class="section-header">
+        <h2 class="section-title">Événements à venir</h2>
+        <div class="section-subtitle">Découvrez les événements les plus populaires</div>
+    </div>
+    
+    <div class="events-filter">
+        <div class="search-bar">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" placeholder="Rechercher un événement...">
+            <button type="submit">Rechercher</button>
+        </div>
+        <div class="filter-options">
+            <div class="filter-group">
+                <i class="fas fa-tag"></i>
+                <select>
+                    <option value="">Tous les types</option>
+                    <option value="concert">Concerts</option>
+                    <option value="festival">Festivals</option>
+                    <option value="conference">Conférences</option>
+                    <option value="workshop">Ateliers</option>
+                    <option value="sport">Sports</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <i class="fas fa-calendar-alt"></i>
+                <select>
+                    <option value="">Toutes les dates</option>
+                    <option value="today">Aujourd'hui</option>
+                    <option value="tomorrow">Demain</option>
+                    <option value="week">Cette semaine</option>
+                    <option value="weekend">Ce weekend</option>
+                    <option value="month">Ce mois-ci</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <i class="fas fa-map-marker-alt"></i>
+                <select>
+                    <option value="">Toutes les villes</option>
+                    <option value="paris">Paris</option>
+                    <option value="lyon">Lyon</option>
+                    <option value="marseille">Marseille</option>
+                    <option value="bordeaux">Bordeaux</option>
+                    <option value="lille">Lille</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    
+    <div class="filter-tags">
+        <div class="filter-tag active">Tous <i class="fas fa-times"></i></div>
+        <div class="filter-tag">Cette semaine <i class="fas fa-times"></i></div>
+        <div class="filter-tag">Concerts <i class="fas fa-times"></i></div>
+        <div class="filter-tag">Paris <i class="fas fa-times"></i></div>
+    </div>
+    
+    <div class="events-grid">
+        {% for event in events %}
+        <div class="event-card">
+            <div class="event-image">
+                {% if event.image %}
+                <img src="{{ event.image.url }}" alt="{{ event.title }}">
+                {% else %}
+                <img src="https://images.unsplash.com/photo-1511795409834-ef04bbd61622?q=80&w=500&auto=format&fit=crop" alt="{{ event.title }}">
+                {% endif %}
+                <div class="event-date">
+                    <span class="day">{{ event.date|date:"d" }}</span>
+                    <span class="month">{{ event.date|date:"M" }}</span>
+                </div>
+                {% if event.remaining_seats < 10 and event.remaining_seats > 0 %}
+                <div class="event-badge last-seats">Dernières places</div>
+                {% elif forloop.counter == 1 %}
+                <div class="event-badge popular">Populaire</div>
+                {% elif forloop.counter == 2 %}
+                <div class="event-badge new">Nouveau</div>
+                {% else %}
+                <div class="event-badge last-seats">Dernières places</div>
+                {% endif %}
+            </div>
+            <div class="event-info">
+                <div class="event-category">
+                    {% if forloop.counter|divisibleby:3 %}
+                    <i class="fas fa-microphone-alt"></i> Concert
+                    {% elif forloop.counter|divisibleby:2 %}
+                    <i class="fas fa-film"></i> Festival
+                    {% else %}
+                    <i class="fas fa-graduation-cap"></i> Conférence
+                    {% endif %}
+                </div>
+                <h3 class="event-title">{{ event.title }}</h3>
+                <p class="event-location"><i class="fas fa-map-marker-alt"></i> {{ event.location }}</p>
+                <p class="event-time"><i class="far fa-clock"></i> {{ event.date|date:"H:i" }}</p>
+                <div class="event-excerpt">
+                    {{ event.description|truncatechars:80 }}
+                </div>
+                <div class="event-footer">
+                    <div class="event-seats"
+                        {% if event.remaining_seats < 10 %}data-tooltip="Il ne reste que quelques places !"{% endif %}>
+                        <i class="fas fa-ticket-alt"></i>
+                        <span {% if event.remaining_seats < 10 %}class="few-left"{% endif %}>
+                            {{ event.remaining_seats }} places restantes
+                        </span>
+                    </div>
+                    <div class="event-price">
+                        {% if event.price == 0 %}
+                        <span class="free">Gratuit</span>
+                        {% else %}
+                        <span>{{ event.price }} €</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="event-actions">
+                    <a href="#" class="btn btn-primary"><i class="fas fa-ticket-alt"></i> Réserver</a>
+                    <div class="event-likes">
+                        <button class="like-btn" data-event-id="{{ event.id }}">
+                            <i class="far fa-heart"></i>
+                        </button>
+                        <span class="likes-count">{{ event.likes_count|default:0 }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <!-- Ajouter des événements statiques pour la démo -->
+        <!-- Événement 1 -->
+        <div class="event-card">
+            <div class="event-image">
+                <img src="https://images.unsplash.com/photo-1511795409834-ef04bbd61622?q=80&w=500&auto=format&fit=crop" alt="Concert de Jazz">
+                <div class="event-date">
+                    <span class="day">15</span>
+                    <span class="month">Mai</span>
+                </div>
+                <div class="event-badge popular">Populaire</div>
+            </div>
+            <div class="event-info">
+                <div class="event-category">
+                    <i class="fas fa-microphone-alt"></i> Concert
+                </div>
+                <h3 class="event-title">Concert de Jazz</h3>
+                <p class="event-location"><i class="fas fa-map-marker-alt"></i> Salle Pleyel, Paris</p>
+                <p class="event-time"><i class="far fa-clock"></i> 20:00</p>
+                <div class="event-excerpt">
+                    Découvrez les plus grands standards du jazz avec des musiciens de renommée internationale.
+                </div>
+                <div class="event-footer">
+                    <div class="event-seats">
+                        <i class="fas fa-ticket-alt"></i>
+                        <span>150 places restantes</span>
+                    </div>
+                    <div class="event-price">
+                        <span>25 €</span>
+                    </div>
+                </div>
+                <div class="event-actions">
+                    <a href="javascript:void(0);" class="btn btn-primary"><i class="fas fa-ticket-alt"></i> Réserver</a>
+                    <div class="event-likes">
+                        <button class="like-btn" data-event-id="1">
+                            <i class="far fa-heart"></i>
+                        </button>
+                        <span class="likes-count">42</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Événement 2 -->
+        <div class="event-card">
+            <div class="event-image">
+                <img src="https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?q=80&w=500&auto=format&fit=crop" alt="Festival de Cinéma">
+                <div class="event-date">
+                    <span class="day">20</span>
+                    <span class="month">Mai</span>
+                </div>
+                <div class="event-badge new">Nouveau</div>
+            </div>
+            <div class="event-info">
+                <div class="event-category">
+                    <i class="fas fa-film"></i> Festival
+                </div>
+                <h3 class="event-title">Festival de Cinéma</h3>
+                <p class="event-location"><i class="fas fa-map-marker-alt"></i> Cinémathèque, Lyon</p>
+                <p class="event-time"><i class="far fa-clock"></i> 14:00</p>
+                <div class="event-excerpt">
+                    Projections de films indépendants et rencontres avec les réalisateurs.
+                </div>
+                <div class="event-footer">
+                    <div class="event-seats">
+                        <i class="fas fa-ticket-alt"></i>
+                        <span>80 places restantes</span>
+                    </div>
+                    <div class="event-price">
+                        <span>15 €</span>
+                    </div>
+                </div>
+                <div class="event-actions">
+                    <a href="javascript:void(0);" class="btn btn-primary"><i class="fas fa-ticket-alt"></i> Réserver</a>
+                    <div class="event-likes">
+                        <button class="like-btn" data-event-id="2">
+                            <i class="far fa-heart"></i>
+                        </button>
+                        <span class="likes-count">28</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Événement 3 -->
+        <div class="event-card">
+            <div class="event-image">
+                <img src="https://images.unsplash.com/photo-1475721027785-f74eccf877e2?q=80&w=500&auto=format&fit=crop" alt="Atelier Cuisine">
+                <div class="event-date">
+                    <span class="day">25</span>
+                    <span class="month">Mai</span>
+                </div>
+            </div>
+            <div class="event-info">
+                <div class="event-category">
+                    <i class="fas fa-utensils"></i> Atelier
+                </div>
+                <h3 class="event-title">Atelier Cuisine Japonaise</h3>
+                <p class="event-location"><i class="fas fa-map-marker-alt"></i> École de Cuisine, Bordeaux</p>
+                <p class="event-time"><i class="far fa-clock"></i> 18:30</p>
+                <div class="event-excerpt">
+                    Apprenez à préparer des sushis et autres spécialités japonaises avec un chef renommé.
+                </div>
+                <div class="event-footer">
+                    <div class="event-seats" data-tooltip="Il ne reste que quelques places !">
+                        <i class="fas fa-ticket-alt"></i>
+                        <span class="few-left">3 places restantes</span>
+                    </div>
+                    <div class="event-price">
+                        <span>45 €</span>
+                    </div>
+                </div>
+                <div class="event-actions">
+                    <a href="javascript:void(0);" class="btn btn-primary"><i class="fas fa-ticket-alt"></i> Réserver</a>
+                    <div class="event-likes">
+                        <button class="like-btn" data-event-id="3">
+                            <i class="far fa-heart"></i>
+                        </button>
+                        <span class="likes-count">14</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Événement 4 -->
+        <div class="event-card">
+            <div class="event-image">
+                <img src="https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?q=80&w=500&auto=format&fit=crop" alt="Conférence Tech">
+                <div class="event-date">
+                    <span class="day">30</span>
+                    <span class="month">Mai</span>
+                </div>
+            </div>
+            <div class="event-info">
+                <div class="event-category">
+                    <i class="fas fa-laptop-code"></i> Conférence
+                </div>
+                <h3 class="event-title">Conférence sur l'IA</h3>
+                <p class="event-location"><i class="fas fa-map-marker-alt"></i> Centre des Congrès, Marseille</p>
+                <p class="event-time"><i class="far fa-clock"></i> 10:00</p>
+                <div class="event-excerpt">
+                    Exploration des dernières avancées en intelligence artificielle et leurs applications.
+                </div>
+                <div class="event-footer">
+                    <div class="event-seats">
+                        <i class="fas fa-ticket-alt"></i>
+                        <span>120 places restantes</span>
+                    </div>
+                    <div class="event-price">
+                        <span class="free">Gratuit</span>
+                    </div>
+                </div>
+                <div class="event-actions">
+                    <a href="javascript:void(0);" class="btn btn-primary"><i class="fas fa-ticket-alt"></i> Réserver</a>
+                    <div class="event-likes">
+                        <button class="like-btn" data-event-id="4">
+                            <i class="far fa-heart"></i>
+                        </button>
+                        <span class="likes-count">56</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Événement 5 -->
+        <div class="event-card">
+            <div class="event-image">
+                <img src="https://images.unsplash.com/photo-1498654896293-37aacf113fd9?q=80&w=500&auto=format&fit=crop" alt="Festival de musique">
+                <div class="event-date">
+                    <span class="day">2</span>
+                    <span class="month">Juin</span>
+                </div>
+                <div class="event-badge popular">Populaire</div>
+            </div>
+            <div class="event-info">
+                <div class="event-category">
+                    <i class="fas fa-music"></i> Festival
+                </div>
+                <h3 class="event-title">Festival Électronique</h3>
+                <p class="event-location"><i class="fas fa-map-marker-alt"></i> Parc des Expositions, Lille</p>
+                <p class="event-time"><i class="far fa-clock"></i> 20:00</p>
+                <div class="event-excerpt">
+                    Trois jours de musique électronique avec les meilleurs DJs internationaux.
+                </div>
+                <div class="event-footer">
+                    <div class="event-seats">
+                        <i class="fas fa-ticket-alt"></i>
+                        <span>500 places restantes</span>
+                    </div>
+                    <div class="event-price">
+                        <span>60 €</span>
+                    </div>
+                </div>
+                <div class="event-actions">
+                    <a href="javascript:void(0);" class="btn btn-primary"><i class="fas fa-ticket-alt"></i> Réserver</a>
+                    <div class="event-likes">
+                        <button class="like-btn" data-event-id="5">
+                            <i class="far fa-heart"></i>
+                        </button>
+                        <span class="likes-count">87</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Événement 6 -->
+        <div class="event-card">
+            <div class="event-image">
+                <img src="https://images.unsplash.com/photo-1526401485004-46910ecc8e51?q=80&w=500&auto=format&fit=crop" alt="Tournoi sportif">
+                <div class="event-date">
+                    <span class="day">5</span>
+                    <span class="month">Juin</span>
+                </div>
+            </div>
+            <div class="event-info">
+                <div class="event-category">
+                    <i class="fas fa-running"></i> Sport
+                </div>
+                <h3 class="event-title">Marathon de Paris</h3>
+                <p class="event-location"><i class="fas fa-map-marker-alt"></i> Arc de Triomphe, Paris</p>
+                <p class="event-time"><i class="far fa-clock"></i> 08:00</p>
+                <div class="event-excerpt">
+                    Le marathon annuel de Paris, parcourez 42km à travers les plus beaux monuments de la capitale.
+                </div>
+                <div class="event-footer">
+                    <div class="event-seats">
+                        <i class="fas fa-ticket-alt"></i>
+                        <span>200 places restantes</span>
+                    </div>
+                    <div class="event-price">
+                        <span>40 €</span>
+                    </div>
+                </div>
+                <div class="event-actions">
+                    <a href="javascript:void(0);" class="btn btn-primary"><i class="fas fa-ticket-alt"></i> Réserver</a>
+                    <div class="event-likes">
+                        <button class="like-btn" data-event-id="6">
+                            <i class="far fa-heart"></i>
+                        </button>
+                        <span class="likes-count">34</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Événement 7 -->
+        <div class="event-card">
+            <div class="event-image">
+                <img src="https://images.unsplash.com/photo-1523580494863-6f3031224c94?q=80&w=500&auto=format&fit=crop" alt="Workshop">
+                <div class="event-date">
+                    <span class="day">10</span>
+                    <span class="month">Juin</span>
+                </div>
+                <div class="event-badge new">Nouveau</div>
+            </div>
+            <div class="event-info">
+                <div class="event-category">
+                    <i class="fas fa-chalkboard-teacher"></i> Formation
+                </div>
+                <h3 class="event-title">Atelier Photographie</h3>
+                <p class="event-location"><i class="fas fa-map-marker-alt"></i> Studio Photo, Nantes</p>
+                <p class="event-time"><i class="far fa-clock"></i> 14:30</p>
+                <div class="event-excerpt">
+                    Perfectionnez vos techniques de photographie avec un professionnel reconnu.
+                </div>
+                <div class="event-footer">
+                    <div class="event-seats">
+                        <i class="fas fa-ticket-alt"></i>
+                        <span>15 places restantes</span>
+                    </div>
+                    <div class="event-price">
+                        <span>35 €</span>
+                    </div>
+                </div>
+                <div class="event-actions">
+                    <a href="javascript:void(0);" class="btn btn-primary"><i class="fas fa-ticket-alt"></i> Réserver</a>
+                    <div class="event-likes">
+                        <button class="like-btn" data-event-id="7">
+                            <i class="far fa-heart"></i>
+                        </button>
+                        <span class="likes-count">19</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Événement 8 -->
+        <div class="event-card">
+            <div class="event-image">
+                <img src="https://images.unsplash.com/photo-1507608616759-54f48f0af0ee?q=80&w=500&auto=format&fit=crop" alt="Visite guidée">
+                <div class="event-date">
+                    <span class="day">15</span>
+                    <span class="month">Juin</span>
+                </div>
+            </div>
+            <div class="event-info">
+                <div class="event-category">
+                    <i class="fas fa-globe-europe"></i> Voyage
+                </div>
+                <h3 class="event-title">Visite Châteaux de la Loire</h3>
+                <p class="event-location"><i class="fas fa-map-marker-alt"></i> Tours</p>
+                <p class="event-time"><i class="far fa-clock"></i> 09:00</p>
+                <div class="event-excerpt">
+                    Découverte des plus beaux châteaux de la Loire avec un guide historien.
+                </div>
+                <div class="event-footer">
+                    <div class="event-seats" data-tooltip="Il ne reste que quelques places !">
+                        <i class="fas fa-ticket-alt"></i>
+                        <span class="few-left">5 places restantes</span>
+                    </div>
+                    <div class="event-price">
+                        <span>75 €</span>
+                    </div>
+                </div>
+                <div class="event-actions">
+                    <a href="javascript:void(0);" class="btn btn-primary"><i class="fas fa-ticket-alt"></i> Réserver</a>
+                    <div class="event-likes">
+                        <button class="like-btn" data-event-id="8">
+                            <i class="far fa-heart"></i>
+                        </button>
+                        <span class="likes-count">26</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <div class="pagination-container">
+        <div class="pagination">
+            <a href="#" class="pagination-arrow disabled"><i class="fas fa-chevron-left"></i></a>
+            <a href="#" class="pagination-number active">1</a>
+            <a href="#" class="pagination-number">2</a>
+            <a href="#" class="pagination-number">3</a>
+            <span class="pagination-dots">...</span>
+            <a href="#" class="pagination-number">8</a>
+            <a href="#" class="pagination-arrow"><i class="fas fa-chevron-right"></i></a>
+        </div>
+    </div>
+</section>
+
+<section class="cta-section">
+    <div class="cta-content">
+        <h2>Vous organisez un événement ?</h2>
+        <p>Faites la promotion de votre événement et vendez des billets en quelques clics.</p>
+        <a href="{% url 'create_event' %}" class="btn btn-primary"><i class="fas fa-plus-circle"></i> Créer un événement</a>
+    </div>
+    <div class="cta-shapes">
+        <div class="cta-shape shape-1"></div>
+        <div class="cta-shape shape-2"></div>
+    </div>
+</section>
+
+<section class="categories-section">
+    <div class="section-header">
+        <h2 class="section-title">Explorez par catégorie</h2>
+        <div class="section-subtitle">Trouvez des événements qui correspondent à vos intérêts</div>
+    </div>
+    
+    <div class="categories-grid">
+        <a href="#" class="category-card" style="background-image: url('https://images.unsplash.com/photo-1501386761578-eac5c94b800a?q=80&w=500')">
+            <div class="category-overlay"></div>
+            <div class="category-icon"><i class="fas fa-music"></i></div>
+            <h3 class="category-title">Musique</h3>
+        </a>
+        
+        <a href="#" class="category-card" style="background-image: url('https://images.unsplash.com/photo-1475721027785-f74eccf877e2?q=80&w=500')">
+            <div class="category-overlay"></div>
+            <div class="category-icon"><i class="fas fa-utensils"></i></div>
+            <h3 class="category-title">Gastronomie</h3>
+        </a>
+        
+        <a href="#" class="category-card" style="background-image: url('https://images.unsplash.com/photo-1523580494863-6f3031224c94?q=80&w=500')">
+            <div class="category-overlay"></div>
+            <div class="category-icon"><i class="fas fa-graduation-cap"></i></div>
+            <h3 class="category-title">Formation</h3>
+        </a>
+        
+        <a href="#" class="category-card" style="background-image: url('https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?q=80&w=500')">
+            <div class="category-overlay"></div>
+            <div class="category-icon"><i class="fas fa-film"></i></div>
+            <h3 class="category-title">Cinéma</h3>
+        </a>
+        
+        <a href="#" class="category-card" style="background-image: url('https://images.unsplash.com/photo-1526401485004-46910ecc8e51?q=80&w=500')">
+            <div class="category-overlay"></div>
+            <div class="category-icon"><i class="fas fa-running"></i></div>
+            <h3 class="category-title">Sport</h3>
+        </a>
+        
+        <a href="#" class="category-card" style="background-image: url('https://images.unsplash.com/photo-1507608616759-54f48f0af0ee?q=80&w=500')">
+            <div class="category-overlay"></div>
+            <div class="category-icon"><i class="fas fa-globe-europe"></i></div>
+            <h3 class="category-title">Voyage</h3>
+        </a>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/home.css' %}">
+<link rel="stylesheet" href="{% static 'css/events.css' %}">
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Code pour gérer les likes (simulé pour le frontend)
+    document.querySelectorAll('.like-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const eventId = this.dataset.eventId;
+            const icon = this.querySelector('i');
+            const likesCount = this.parentElement.querySelector('.likes-count');
+            
+            // Simuler l'alternance de l'icône de like
+            if (icon.classList.contains('far')) {
+                icon.classList.remove('far');
+                icon.classList.add('fas');
+                icon.classList.add('liked');
+                likesCount.textContent = parseInt(likesCount.textContent) + 1;
+            } else {
+                icon.classList.remove('fas');
+                icon.classList.remove('liked');
+                icon.classList.add('far');
+                likesCount.textContent = parseInt(likesCount.textContent) - 1;
+            }
+            
+            // En production, ceci serait un appel AJAX au backend
+            console.log(`Like toggled for event ${eventId}`);
+        });
+    });
+</script>
+{% endblock %}

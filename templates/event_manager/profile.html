@@ -1,0 +1,276 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mon Profil | ÉvénementsCo{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/forms.css' %}">
+<link rel="stylesheet" href="{% static 'css/events.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="profile-container">
+        <div class="profile-header">
+            <div class="profile-avatar">
+                <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Photo de profil">
+                <button class="edit-avatar-btn"><i class="fas fa-camera"></i></button>
+            </div>
+            <div class="profile-info">
+                <h1>Jean Dupont</h1>
+                <p class="profile-email">jean.dupont@exemple.com</p>
+                <p class="profile-joined">Membre depuis le 15 mars 2025</p>
+            </div>
+            <div class="profile-stats">
+                <div class="stat">
+                    <span class="stat-number">5</span>
+                    <span class="stat-label">Événements créés</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number">12</span>
+                    <span class="stat-label">Participations</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number">24</span>
+                    <span class="stat-label">Likes</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="profile-tabs">
+            <div class="tab-buttons">
+                <button class="tab-btn active" data-tab="my-events">Mes événements</button>
+                <button class="tab-btn" data-tab="registered">Participations</button>
+                <button class="tab-btn" data-tab="liked">Favoris</button>
+                <button class="tab-btn" data-tab="settings">Paramètres</button>
+            </div>
+
+            <div class="tab-content">
+                <!-- Mes événements -->
+                <div class="tab-pane active" id="my-events">
+                    <div class="tab-header">
+                        <h2>Mes événements</h2>
+                        <a href="{% url 'create_event' %}" class="btn btn-primary"><i class="fas fa-plus-circle"></i> Créer un événement</a>
+                    </div>
+                    
+                    <div class="events-grid">
+                        <!-- Exemple d'événement créé -->
+                        <div class="event-card">
+                            <div class="event-image">
+                                <img src="https://images.unsplash.com/photo-1511795409834-ef04bbd61622?q=80&w=500&auto=format&fit=crop" alt="Concert de Jazz">
+                                <div class="event-date">
+                                    <span class="day">15</span>
+                                    <span class="month">Mai</span>
+                                </div>
+                                <div class="event-badge popular">Populaire</div>
+                            </div>
+                            <div class="event-info">
+                                <div class="event-category">
+                                    <i class="fas fa-microphone-alt"></i> Concert
+                                </div>
+                                <h3 class="event-title">Concert de Jazz</h3>
+                                <p class="event-location"><i class="fas fa-map-marker-alt"></i> Salle Pleyel, Paris</p>
+                                <p class="event-time"><i class="far fa-clock"></i> 20:00</p>
+                                <div class="event-footer">
+                                    <div class="event-seats">
+                                        <i class="fas fa-ticket-alt"></i>
+                                        <span>150 places restantes</span>
+                                    </div>
+                                    <div class="event-price">
+                                        <span>25 €</span>
+                                    </div>
+                                </div>
+                                <div class="event-actions">
+                                    <a href="#" class="btn btn-secondary"><i class="fas fa-edit"></i> Modifier</a>
+                                    <div class="event-likes">
+                                        <span class="likes-count">28</span>
+                                        <i class="fas fa-heart"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Participations -->
+                <div class="tab-pane" id="registered">
+                    <h2>Mes participations</h2>
+                    <div class="events-grid">
+                        <!-- Exemple de participation -->
+                        <div class="event-card">
+                            <div class="event-image">
+                                <img src="https://images.unsplash.com/photo-1470020618177-f49a96241ae7?q=80&w=500&auto=format&fit=crop" alt="Festival de Cinéma">
+                                <div class="event-date">
+                                    <span class="day">25</span>
+                                    <span class="month">Mai</span>
+                                </div>
+                                <div class="event-status confirmed">Confirmé</div>
+                            </div>
+                            <div class="event-info">
+                                <div class="event-category">
+                                    <i class="fas fa-film"></i> Festival
+                                </div>
+                                <h3 class="event-title">Festival de Cinéma</h3>
+                                <p class="event-location"><i class="fas fa-map-marker-alt"></i> Cinémathèque, Lyon</p>
+                                <p class="event-time"><i class="far fa-clock"></i> 14:00</p>
+                                <div class="registration-info">
+                                    <div class="registration-detail">
+                                        <span class="label">Places :</span>
+                                        <span class="value">2</span>
+                                    </div>
+                                    <div class="registration-detail">
+                                        <span class="label">Total :</span>
+                                        <span class="value">30 €</span>
+                                    </div>
+                                </div>
+                                <div class="event-actions">
+                                    <a href="#" class="btn btn-secondary"><i class="fas fa-ticket-alt"></i> Voir le billet</a>
+                                    <a href="#" class="btn btn-outline btn-sm"><i class="fas fa-times"></i> Annuler</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Favoris -->
+                <div class="tab-pane" id="liked">
+                    <h2>Mes événements favoris</h2>
+                    <div class="events-grid">
+                        <!-- Exemple de favori -->
+                        <div class="event-card">
+                            <div class="event-image">
+                                <img src="https://images.unsplash.com/photo-1475721027785-f74eccf877e2?q=80&w=500&auto=format&fit=crop" alt="Atelier Cuisine">
+                                <div class="event-date">
+                                    <span class="day">2</span>
+                                    <span class="month">Juin</span>
+                                </div>
+                            </div>
+                            <div class="event-info">
+                                <div class="event-category">
+                                    <i class="fas fa-utensils"></i> Atelier
+                                </div>
+                                <h3 class="event-title">Atelier Cuisine Japonaise</h3>
+                                <p class="event-location"><i class="fas fa-map-marker-alt"></i> École de Cuisine, Bordeaux</p>
+                                <p class="event-time"><i class="far fa-clock"></i> 18:30</p>
+                                <div class="event-footer">
+                                    <div class="event-seats">
+                                        <i class="fas fa-ticket-alt"></i>
+                                        <span class="few-left">3 places restantes</span>
+                                    </div>
+                                    <div class="event-price">
+                                        <span>45 €</span>
+                                    </div>
+                                </div>
+                                <div class="event-actions">
+                                    <a href="#" class="btn btn-primary"><i class="fas fa-ticket-alt"></i> Réserver</a>
+                                    <div class="event-likes">
+                                        <button class="like-btn" data-event-id="3">
+                                            <i class="fas fa-heart liked"></i>
+                                        </button>
+                                        <span class="likes-count">14</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Paramètres -->
+                <div class="tab-pane" id="settings">
+                    <h2>Paramètres du compte</h2>
+                    <form class="profile-form">
+                        <div class="form-group">
+                            <label for="name">Nom complet</label>
+                            <input type="text" id="name" name="name" value="Jean Dupont">
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Adresse email</label>
+                            <input type="email" id="email" name="email" value="jean.dupont@exemple.com">
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">Téléphone</label>
+                            <input type="text" id="phone" name="phone" value="06 12 34 56 78">
+                        </div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="city">Ville</label>
+                                <input type="text" id="city" name="city" value="Paris">
+                            </div>
+                            <div class="form-group">
+                                <label for="postal_code">Code postal</label>
+                                <input type="text" id="postal_code" name="postal_code" value="75010">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="bio">Bio</label>
+                            <textarea id="bio" name="bio" rows="4">Amateur de musique, de cinéma et d'art en général. Toujours à la recherche de nouvelles expériences culturelles.</textarea>
+                        </div>
+                        
+                        <div class="form-section">
+                            <h3>Modifier le mot de passe</h3>
+                            <div class="form-group">
+                                <label for="current_password">Mot de passe actuel</label>
+                                <input type="password" id="current_password" name="current_password">
+                            </div>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="new_password">Nouveau mot de passe</label>
+                                    <input type="password" id="new_password" name="new_password">
+                                </div>
+                                <div class="form-group">
+                                    <label for="confirm_password">Confirmer le mot de passe</label>
+                                    <input type="password" id="confirm_password" name="confirm_password">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-section">
+                            <h3>Notifications</h3>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="email_notif" name="email_notif" checked>
+                                <label for="email_notif">Recevoir des notifications par email</label>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="new_events" name="new_events" checked>
+                                <label for="new_events">M'informer des nouveaux événements</label>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="marketing" name="marketing">
+                                <label for="marketing">Recevoir des offres promotionnelles</label>
+                            </div>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-outline">Annuler</button>
+                            <button type="submit" class="btn btn-primary">Enregistrer</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Gestion des onglets
+        const tabButtons = document.querySelectorAll('.tab-btn');
+        const tabPanes = document.querySelectorAll('.tab-pane');
+        
+        tabButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                // Retirer la classe active de tous les boutons et panneaux
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                tabPanes.forEach(pane => pane.classList.remove('active'));
+                
+                // Ajouter la classe active au bouton cliqué et au panneau correspondant
+                this.classList.add('active');
+                const tabId = this.getAttribute('data-tab');
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+    });
+</script>
+{% endblock %}

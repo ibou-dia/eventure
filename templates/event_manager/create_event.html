@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Créer un événement | ÉvénementsCo{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/forms.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <h1 class="form-title">Créer un nouvel événement</h1>
+    
+    <div class="form-content">
+        <form method="post" action="{% url 'create_event' %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="title">Titre de l'événement*</label>
+                <input type="text" name="title" id="title" placeholder="Ex: Concert de Jazz" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="description">Description*</label>
+                <textarea name="description" id="description" rows="5" placeholder="Décrivez votre événement en détail..." required></textarea>
+            </div>
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="date">Date et heure*</label>
+                    <input type="datetime-local" name="date" id="date" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="location">Lieu*</label>
+                    <input type="text" name="location" id="location" placeholder="Ex: Salle des fêtes, Paris" required>
+                </div>
+            </div>
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="total_seats">Nombre de places disponibles*</label>
+                    <input type="number" name="total_seats" id="total_seats" min="1" value="100" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="price">Prix par personne (€)*</label>
+                    <input type="number" name="price" id="price" min="0" step="0.01" value="0" required>
+                    <small>Indiquez 0 pour un événement gratuit</small>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="image">Image de l'événement</label>
+                <input type="file" name="image" id="image" accept="image/*">
+                <small>Format recommandé: JPG ou PNG, max 2 MB</small>
+            </div>
+            
+            <div class="form-actions">
+                <button type="reset" class="btn btn-outline">Annuler</button>
+                <button type="submit" class="btn btn-primary">Créer l'événement</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Définir la date minimum à aujourd'hui
+    const dateInput = document.getElementById('date');
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    
+    const minDateTime = `${year}-${month}-${day}T${hours}:${minutes}`;
+    dateInput.setAttribute('min', minDateTime);
+    
+    // Validation du formulaire
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const title = document.getElementById('title').value.trim();
+        const description = document.getElementById('description').value.trim();
+        const date = document.getElementById('date').value;
+        const location = document.getElementById('location').value.trim();
+        const totalSeats = parseInt(document.getElementById('total_seats').value);
+        
+        if (!title || !description || !date || !location || totalSeats <= 0) {
+            e.preventDefault();
+            alert('Veuillez remplir tous les champs obligatoires correctement.');
+        }
+    });
+</script>
+{% endblock %}
