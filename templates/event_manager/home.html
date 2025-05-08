@@ -40,12 +40,12 @@
         <h2 class="section-title">Événements à venir</h2>
         <div class="section-subtitle">Découvrez les événements les plus populaires</div>
     </div>
-    
+
     <div class="events-filter">
         <div class="search-bar">
             <i class="fas fa-search search-icon"></i>
-            <input type="text" placeholder="Rechercher un événement...">
-            <button type="submit">Rechercher</button>
+            <input type="text" placeholder="Rechercher un événement..." id="search-input" autocomplete="off">
+            <button type="submit"><i class="fas fa-arrow-right"></i> Rechercher</button>
         </div>
         <div class="filter-options">
             <div class="filter-group">
@@ -83,20 +83,23 @@
             </div>
         </div>
     </div>
-    
-    <div class="filter-tags">
-        <div class="filter-tag active">Tous <i class="fas fa-times"></i></div>
-        <div class="filter-tag">Cette semaine <i class="fas fa-times"></i></div>
-        <div class="filter-tag">Concerts <i class="fas fa-times"></i></div>
-        <div class="filter-tag">Paris <i class="fas fa-times"></i></div>
+
+    <!-- Tags de filtres actifs -->
+    <div class="filter-tags-container">
+        <div class="filter-tags">
+            <div class="filter-tag active">Tous <i class="fas fa-times"></i></div>
+            <div class="filter-tag">Cette semaine <i class="fas fa-times"></i></div>
+            <div class="filter-tag">Concerts <i class="fas fa-times"></i></div>
+            <div class="filter-tag">Paris <i class="fas fa-times"></i></div>
+        </div>
     </div>
-    
+
     <div class="events-grid">
         {% for event in events %}
         <div class="event-card">
             <div class="event-image">
-                {% if event.image %}
-                <img src="{{ event.image.url }}" alt="{{ event.title }}">
+                {% if event.image_url %}
+                <img src="{{ event.image_url }}" alt="{{ event.title }}">
                 {% else %}
                 <img src="https://images.unsplash.com/photo-1511795409834-ef04bbd61622?q=80&w=500&auto=format&fit=crop" alt="{{ event.title }}">
                 {% endif %}
@@ -132,10 +135,10 @@
                 </div>
                 <div class="event-footer">
                     <div class="event-seats"
-                        {% if event.remaining_seats < 10 %}data-tooltip="Il ne reste que quelques places !"{% endif %}>
+                        {% if event.remaining_seat < 10 %}data-tooltip="Il ne reste que quelques places !"{% endif %}>
                         <i class="fas fa-ticket-alt"></i>
-                        <span {% if event.remaining_seats < 10 %}class="few-left"{% endif %}>
-                            {{ event.remaining_seats }} places restantes
+                        <span {% if event.remaining_seat < 10 %}class="few-left"{% endif %}>
+                            {{ event.remaining_seat }} places restantes
                         </span>
                     </div>
                     <div class="event-price">
@@ -199,7 +202,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Événement 2 -->
         <div class="event-card">
             <div class="event-image">
@@ -240,7 +243,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Événement 3 -->
         <div class="event-card">
             <div class="event-image">
@@ -280,7 +283,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Événement 4 -->
         <div class="event-card">
             <div class="event-image">
@@ -320,7 +323,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Événement 5 -->
         <div class="event-card">
             <div class="event-image">
@@ -361,7 +364,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Événement 6 -->
         <div class="event-card">
             <div class="event-image">
@@ -401,7 +404,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Événement 7 -->
         <div class="event-card">
             <div class="event-image">
@@ -442,7 +445,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Événement 8 -->
         <div class="event-card">
             <div class="event-image">
@@ -484,7 +487,7 @@
         </div>
         {% endfor %}
     </div>
-    
+
     <div class="pagination-container">
         <div class="pagination">
             <a href="#" class="pagination-arrow disabled"><i class="fas fa-chevron-left"></i></a>
@@ -515,38 +518,38 @@
         <h2 class="section-title">Explorez par catégorie</h2>
         <div class="section-subtitle">Trouvez des événements qui correspondent à vos intérêts</div>
     </div>
-    
+
     <div class="categories-grid">
         <a href="#" class="category-card" style="background-image: url('https://images.unsplash.com/photo-1501386761578-eac5c94b800a?q=80&w=500')">
             <div class="category-overlay"></div>
             <div class="category-icon"><i class="fas fa-music"></i></div>
             <h3 class="category-title">Musique</h3>
         </a>
-        
+
         <a href="#" class="category-card" style="background-image: url('https://images.unsplash.com/photo-1475721027785-f74eccf877e2?q=80&w=500')">
             <div class="category-overlay"></div>
             <div class="category-icon"><i class="fas fa-utensils"></i></div>
             <h3 class="category-title">Gastronomie</h3>
         </a>
-        
+
         <a href="#" class="category-card" style="background-image: url('https://images.unsplash.com/photo-1523580494863-6f3031224c94?q=80&w=500')">
             <div class="category-overlay"></div>
             <div class="category-icon"><i class="fas fa-graduation-cap"></i></div>
             <h3 class="category-title">Formation</h3>
         </a>
-        
+
         <a href="#" class="category-card" style="background-image: url('https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?q=80&w=500')">
             <div class="category-overlay"></div>
             <div class="category-icon"><i class="fas fa-film"></i></div>
             <h3 class="category-title">Cinéma</h3>
         </a>
-        
+
         <a href="#" class="category-card" style="background-image: url('https://images.unsplash.com/photo-1526401485004-46910ecc8e51?q=80&w=500')">
             <div class="category-overlay"></div>
             <div class="category-icon"><i class="fas fa-running"></i></div>
             <h3 class="category-title">Sport</h3>
         </a>
-        
+
         <a href="#" class="category-card" style="background-image: url('https://images.unsplash.com/photo-1507608616759-54f48f0af0ee?q=80&w=500')">
             <div class="category-overlay"></div>
             <div class="category-icon"><i class="fas fa-globe-europe"></i></div>
@@ -562,6 +565,12 @@
 {% endblock %}
 
 {% block extra_js %}
+<!-- GSAP pour les animations -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+<!-- Script personnalisé pour la barre de recherche -->
+<script src="{% static 'js/search.js' %}"></script>
+
 <script>
     // Code pour gérer les likes (simulé pour le frontend)
     document.querySelectorAll('.like-btn').forEach(button => {
@@ -569,7 +578,7 @@
             const eventId = this.dataset.eventId;
             const icon = this.querySelector('i');
             const likesCount = this.parentElement.querySelector('.likes-count');
-            
+
             // Simuler l'alternance de l'icône de like
             if (icon.classList.contains('far')) {
                 icon.classList.remove('far');
@@ -582,7 +591,7 @@
                 icon.classList.add('far');
                 likesCount.textContent = parseInt(likesCount.textContent) - 1;
             }
-            
+
             // En production, ceci serait un appel AJAX au backend
             console.log(`Like toggled for event ${eventId}`);
         });

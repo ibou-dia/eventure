@@ -3,9 +3,11 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponseRedirect
 from django.urls import reverse
 from django.contrib import messages
-from .models import Event, Comment, EventRegistration
+from .models import event_collection
+from datetime import datetime
 from django.db.models import Count
 from django.utils import timezone
+
 
 # Pour simuler des données en attendant une intégration complète
 def get_sample_events():
@@ -45,8 +47,18 @@ def get_sample_events():
 
 # Vues principales
 def home(request):
-    events = get_sample_events()
-    return render(request, 'event_manager/home.html', {'events': events})
+    # events = get_sample_events()
+    events =event_collection.find()
+    parsed_events = []
+    for event in events:
+        parsed_event = event.copy()
+        if isinstance(event.get("date"), str):
+            try:
+                parsed_event["date"] = datetime.fromisoformat(event["date"].replace("Z", "+00:00"))
+            except Exception as e:
+                parsed_event["date"] = None  # ou garde la chaîne originale
+        parsed_events.append(parsed_event)
+    return render(request, 'event_manager/home.html', {'events': parsed_events})
 
 def event_detail(request, event_id):
     # En mode statique, on retrouve l'événement dans notre liste d'exemples
