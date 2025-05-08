@@ -483,49 +483,54 @@
 .pagination {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 10px;
+    justify-content: center; /* Centrer horizontalement les boutons */
+    gap: 10px; /* Espacement légèrement plus grand entre les boutons */
+    padding: 15px;
     background-color: rgba(255, 255, 255, 0.9);
     border-radius: 50px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
     backdrop-filter: blur(5px);
+    width: fit-content; /* Pour s'assurer que le conteneur n'est pas trop large */
+    margin: 0 auto; /* Centre horizontalement le conteneur */
 }
 
 .pagination a {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 42px;
-    height: 42px;
-    border-radius: 50%;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%; /* Forme parfaitement circulaire */
     font-weight: 600;
-    font-size: 15px;
+    font-size: 16px;
     color: var(--text-color);
-    background-color: white;
+    background-color: transparent; /* Fond transparent pour les pages inactives */
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     text-decoration: none;
-    border: 2px solid transparent;
+    border: 2px solid #e0e0e0; /* Bordure légère pour tous les boutons */
+    margin: 0 2px;
 }
 
 .pagination a:hover {
-    background: linear-gradient(to bottom right, #f8f8f8, #ffffff);
+    background-color: rgba(255, 255, 255, 0.8);
     transform: translateY(-3px) scale(1.05);
     box-shadow: 0 5px 15px rgba(93, 74, 219, 0.15);
     color: var(--primary-color);
-    border-color: rgba(93, 74, 219, 0.2);
+    border-color: var(--primary-color);
 }
 
 .pagination a.active {
-    background: var(--primary-color);
+    background: var(--gradient-primary); /* Utiliser le dégradé pour la page active */
     color: white;
     box-shadow: 0 5px 15px rgba(93, 74, 219, 0.3);
     transform: scale(1.1);
-    border-color: var(--primary-color);
+    border-color: transparent; /* Pas de bordure visible pour le bouton actif */
 }
 
 .pagination a.active:hover {
     transform: translateY(-3px) scale(1.15);
+    opacity: 0.95; /* Léger effet au survol même sur le bouton actif */
 }
 
 .pagination a i {
