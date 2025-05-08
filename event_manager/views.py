@@ -7,58 +7,105 @@ from .models import event_collection
 from datetime import datetime
 from django.db.models import Count
 from django.utils import timezone
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.template.loader import render_to_string
+from bson.objectid import ObjectId
+
+
+# Fonction utilitaire pour convertir un ID en ObjectId si possible
+def try_convert_to_objectid(id_string):
+    try:
+        if id_string and isinstance(id_string, str) and len(id_string) == 24 and all(c in '0123456789abcdefABCDEF' for c in id_string):
+            return ObjectId(id_string)
+        return id_string
+    except Exception:
+        return id_string
 
 
 # Pour simuler des données en attendant une intégration complète
 def get_sample_events():
-    # Si la base de données est vide, créons quelques événements fictifs
-    if Event.objects.count() == 0:
-        sample_events = [
-            {
-                'title': 'Concert de Jazz',
-                'description': 'Une soirée exceptionnelle avec les meilleurs artistes de jazz.',
-                'date': timezone.now() + timezone.timedelta(days=10),
-                'location': 'Salle Pleyel, Paris',
-                'total_seats': 200,
-                'remaining_seats': 150,
-                'price': 25.00,
-            },
-            {
-                'title': 'Festival de Cinéma',
-                'description': 'Projection de films indépendants et rencontre avec des réalisateurs.',
-                'date': timezone.now() + timezone.timedelta(days=20),
-                'location': 'Cinémathèque, Lyon',
-                'total_seats': 300,
-                'remaining_seats': 300,
-                'price': 15.00,
-            },
-            {
-                'title': 'Conférence Tech',
-                'description': 'Découvrez les dernières innovations technologiques.',
-                'date': timezone.now() + timezone.timedelta(days=5),
-                'location': 'Centre des Congrès, Lille',
-                'total_seats': 500,
-                'remaining_seats': 350,
-                'price': 0.00,
-            },
-        ]
-        return sample_events
-    return Event.objects.all().annotate(likes_count=Count('likes'))
+    # Vérifier si la collection d'événements est vide
+    try:
+        if event_collection.count_documents({}) == 0:
+            sample_events = [
+                {
+                    'title': 'Concert de Jazz',
+                    'description': 'Une soirée exceptionnelle avec les meilleurs artistes de jazz.',
+                    'date': timezone.now() + timezone.timedelta(days=10),
+                    'location': 'Salle Pleyel, Paris',
+                    'total_seats': 200,
+                    'remaining_seats': 150,
+                    'price': 25.00,
+                },
+                {
+                    'title': 'Festival de Cinéma',
+                    'description': 'Projection de films indépendants et rencontre avec des réalisateurs.',
+                    'date': timezone.now() + timezone.timedelta(days=20),
+                    'location': 'Cinémathèque, Lyon',
+                    'total_seats': 300,
+                    'remaining_seats': 300,
+                    'price': 15.00,
+                },
+                {
+                    'title': 'Conférence Tech',
+                    'description': 'Découvrez les dernières innovations technologiques.',
+                    'date': timezone.now() + timezone.timedelta(days=5),
+                    'location': 'Centre des Congrès, Lille',
+                    'total_seats': 500,
+                    'remaining_seats': 350,
+                    'price': 0.00,
+                },
+            ]
+            return sample_events
+        # Si des événements existent déjà, les retourner
+        events = list(event_collection.find())
+        return events
+    except Exception as e:
+        # En cas d'erreur, retourner une liste vide
+        print(f"Erreur lors de la récupération des événements: {e}")
+        return []
 
 # Vues principales
 def home(request):
-    # events = get_sample_events()
-    events =event_collection.find()
-    parsed_events = []
-    for event in events:
-        parsed_event = event.copy()
-        if isinstance(event.get("date"), str):
-            try:
-                parsed_event["date"] = datetime.fromisoformat(event["date"].replace("Z", "+00:00"))
-            except Exception as e:
-                parsed_event["date"] = None  # ou garde la chaîne originale
-        parsed_events.append(parsed_event)
-    return render(request, 'event_manager/home.html', {'events': parsed_events})
+    # Récupérer les événements (mode statique ou base de données)
+    try:
+        events = list(event_collection.find())
+        parsed_events = []
+        for event in events:
+            parsed_event = event.copy()
+            if isinstance(event.get("date"), str):
+                try:
+                    parsed_event["date"] = datetime.fromisoformat(event["date"].replace("Z", "+00:00"))
+                except Exception as e:
+                    parsed_event["date"] = None
+            
+            # Assurer que chaque événement a une propriété 'id' pour les templates
+            if '_id' in parsed_event and 'id' not in parsed_event:
+                parsed_event['id'] = str(parsed_event['_id'])
+            elif 'id' not in parsed_event:
+                # Si ni _id ni id n'existe, utiliser l'index comme fallback
+                parsed_event['id'] = events.index(event) + 1
+                
+            parsed_events.append(parsed_event)
+    except Exception as e:
+        # Fallback sur les événements statiques en cas d'erreur
+        parsed_events = get_sample_events()
+    
+    # Pagination : 10 événements par page
+    paginator = Paginator(parsed_events, 10)
+    page = request.GET.get('page', 1)
+    
+    try:
+        events_page = paginator.page(page)
+    except PageNotAnInteger:
+        events_page = paginator.page(1)
+    except EmptyPage:
+        events_page = paginator.page(paginator.num_pages)
+    
+    return render(request, 'event_manager/home.html', {
+        'events': events_page,
+        'page_obj': events_page,  # Pour la compatibilité avec les tags de pagination
+    })
 
 def event_detail(request, event_id):
     # En mode statique, on retrouve l'événement dans notre liste d'exemples
@@ -76,9 +123,37 @@ def event_detail(request, event_id):
             {'user': 'Marie Martin', 'content': 'J\'ai hâte d\'y être !', 'created_at': timezone.now() - timezone.timedelta(hours=5)},
         ]
     else:
-        # Mode base de données
-        event = get_object_or_404(Event, pk=event_id)
-        comments = event.comments.all().order_by('-created_at')
+        # Mode base de données MongoDB
+        try:
+            # Convertir l'ID en ObjectId si possible et récupérer l'événement
+            mongo_id = try_convert_to_objectid(event_id)
+            event = event_collection.find_one({"_id": mongo_id})
+                
+            if not event:
+                # Si aucun événement n'est trouvé, utiliser un événement par défaut
+                event = sample_events[0] if sample_events else {}
+                event['id'] = event_id
+            else:
+                # Assurer que l'événement a une propriété 'id' pour les templates
+                # Si MongoDB utilise des ObjectId, convertir en string
+                if '_id' in event and 'id' not in event:
+                    event['id'] = str(event['_id'])
+            # Pour l'instant, simuler des commentaires
+            comments = []
+        except Exception as e:
+            print(f"Erreur lors de la récupération de l'événement {event_id}: {e}")
+            # En cas d'erreur, utiliser un événement par défaut
+            event = sample_events[0] if sample_events else {
+                'title': 'Événement non trouvé',
+                'description': 'Désolé, l\'événement que vous recherchez n\'existe pas ou a été supprimé.',
+                'date': timezone.now(),
+                'location': 'Non disponible',
+                'total_seats': 0,
+                'remaining_seats': 0,
+                'price': 0.00,
+                'id': event_id
+            }
+            comments = []
     
     return render(request, 'event_manager/event_detail.html', {
         'event': event,
@@ -121,22 +196,31 @@ def register_for_event(request, event_id):
             return redirect('event_detail', event_id=event_id)
         
         # En mode statique, simuler une réservation réussie
-        # Dans un cas réel, nous créerions une réservation dans la base de données
+        # Dans un cas réel, nous créerions une réservation dans la base de données MongoDB
         try:
-            event = Event.objects.get(pk=event_id) if Event.objects.exists() else None
+            # Vérifier si l'événement existe dans la collection
+            # Convertir l'ID en ObjectId si possible
+            mongo_id = try_convert_to_objectid(event_id)
+            event = event_collection.find_one({"_id": mongo_id})
             
-            # Si nous avons un objet event, créer une réservation
+            # Si nous avons trouvé l'événement, traiter la réservation
             if event:
-                booking = EventRegistration.objects.create(
-                    event=event,
-                    user=request.user,
-                    name=name,
-                    email=email,
-                    num_seats=num_seats,
-                    payment_status='completed' if event.price > 0 else 'pending'
-                )
-                # Rediriger vers la page de confirmation avec l'ID de la réservation
-                return redirect('booking_confirmation', event_id=event_id, booking_id=booking.id)
+                # Simuler une réservation
+                booking_id = 1  # Simuler un ID de réservation
+                
+                # Dans un environnement de production, nous ajouterions la réservation à une collection
+                # booking_data = {
+                #     "event_id": event_id,
+                #     "user_id": request.user.id,
+                #     "name": name,
+                #     "email": email,
+                #     "num_seats": num_seats,
+                #     "payment_status": 'completed' if event.get('price', 0) > 0 else 'pending'
+                # }
+                # booking_id = booking_collection.insert_one(booking_data).inserted_id
+                
+                # Rediriger vers la page de confirmation
+                return redirect('booking_confirmation', event_id=event_id, booking_id=booking_id)
             else:
                 # En mode statique/démo, on simule avec l'ID 1
                 messages.success(request, 'Réservation effectuée avec succès!')
@@ -154,8 +238,12 @@ def register_for_event(request, event_id):
 def booking_confirmation(request, event_id, booking_id):
     # En mode statique/démo, simuler une réservation et un événement
     try:
-        event = Event.objects.get(pk=event_id) if Event.objects.exists() else None
-        booking = EventRegistration.objects.get(pk=booking_id) if EventRegistration.objects.exists() else None
+        # Tenter de récupérer l'événement depuis MongoDB
+        mongo_id = try_convert_to_objectid(event_id)
+        event = event_collection.find_one({"_id": mongo_id})
+        
+        # Pour le moment, nous simulons les réservations
+        booking = None  # Aucune collection de réservations pour l'instant
 
         if not event or not booking:
             # Simuler des données pour la démo
@@ -233,3 +321,65 @@ def register_view(request):
 def profile_view(request):
     # Placeholder pour le profil utilisateur
     return render(request, 'event_manager/profile.html')
+
+# API pour la pagination AJAX des événements
+def events_paginated_api(request):
+    try:
+        # Récupérer la page demandée
+        page = request.GET.get('page', 1)
+        
+        # Récupérer les événements
+        try:
+            events = list(event_collection.find())
+            parsed_events = []
+            for event in events:
+                parsed_event = event.copy()
+                if isinstance(event.get("date"), str):
+                    try:
+                        parsed_event["date"] = datetime.fromisoformat(event["date"].replace("Z", "+00:00"))
+                    except Exception as e:
+                        parsed_event["date"] = None
+                        
+                # Assurer que chaque événement a une propriété 'id' pour les templates
+                if '_id' in parsed_event and 'id' not in parsed_event:
+                    parsed_event['id'] = str(parsed_event['_id'])
+                elif 'id' not in parsed_event:
+                    # Si ni _id ni id n'existe, utiliser l'index comme fallback
+                    parsed_event['id'] = events.index(event) + 1
+                
+                parsed_events.append(parsed_event)
+        except Exception as e:
+            # Fallback sur les événements statiques en cas d'erreur
+            parsed_events = get_sample_events()
+        
+        # Pagination : 10 événements par page
+        paginator = Paginator(parsed_events, 10)
+        
+        try:
+            events_page = paginator.page(page)
+        except PageNotAnInteger:
+            events_page = paginator.page(1)
+        except EmptyPage:
+            events_page = paginator.page(paginator.num_pages)
+        
+        # Rendre le HTML des événements
+        events_html = render_to_string('event_manager/partials/event_cards.html', {
+            'events': events_page,
+        }, request=request)
+        
+        # Rendre le HTML de la pagination
+        pagination_html = render_to_string('event_manager/partials/pagination.html', {
+            'page_obj': events_page,
+        }, request=request)
+        
+        # Retourner les données en JSON
+        return JsonResponse({
+            'success': True,
+            'events_html': events_html,
+            'pagination_html': pagination_html,
+            'current_page': events_page.number,
+            'total_pages': paginator.num_pages,
+        })
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=400)

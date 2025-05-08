@@ -1,0 +1,75 @@
+{% for event in events %}
+<div class="event-card" onclick="window.location.href='{% url 'event_detail' event_id=event.id|default:forloop.counter %}'" style="cursor: pointer;">
+    <div class="event-image">
+        {% if event.image_url %}
+        <img src="{{ event.image_url }}" alt="{{ event.title }}">
+        {% else %}
+        <img src="https://source.unsplash.com/random/300x200/?event,{{ forloop.counter }}" alt="{{ event.title }}">
+        {% endif %}
+        <div class="event-date">
+            <span class="day">{{ event.date|date:"d" }}</span>
+            <span class="month">{{ event.date|date:"M" }}</span>
+        </div>
+        {% if forloop.counter == 1 or forloop.counter == 5 %}
+        <div class="event-badge popular">Populaire</div>
+        {% elif forloop.counter == 2 or forloop.counter == 7 %}
+        <div class="event-badge new">Nouveau</div>
+        {% elif event.remaining_seats < 10 %}
+        <div class="event-badge last-seats">Dernières places</div>
+        {% endif %}
+    </div>
+    <div class="event-info">
+        <div class="event-category">
+            {% if forloop.counter|divisibleby:3 %}
+            <i class="fas fa-microphone-alt"></i> Concert
+            {% elif forloop.counter|divisibleby:4 %}
+            <i class="fas fa-theater-masks"></i> Festival
+            {% elif forloop.counter|divisibleby:2 %}
+            <i class="fas fa-graduation-cap"></i> Conférence
+            {% else %}
+            <i class="fas fa-glass-cheers"></i> Soirée
+            {% endif %}
+        </div>
+        <h3 class="event-title">{{ event.title }}</h3>
+        <p class="event-location"><i class="fas fa-map-marker-alt"></i> {{ event.location }}</p>
+        <p class="event-time"><i class="far fa-clock"></i> {{ event.date|date:"H:i" }}</p>
+        {% comment %} <div class="event-excerpt">
+            {{ event.description|truncatechars:80 }}
+        </div> {% endcomment %}
+        <div class="event-footer">
+            <div class="event-seats"
+                {% if event.remaining_seat < 10 %}data-tooltip="Il ne reste que quelques places !"{% endif %}>
+                <i class="fas fa-ticket-alt"></i>
+                {% if event.remaining_seats < 10 %}
+                <span class="few-left">{{ event.remaining_seats }} places restantes</span>
+                {% else %}
+                <span>{{ event.remaining_seats }} places restantes</span>
+                {% endif %}
+            </div>
+            <div class="event-price">
+                {% if event.price == 0 %}
+                <span class="free">Gratuit</span>
+                {% else %}
+                <span>{{ event.price|floatformat:0 }} €</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="event-actions">
+            <a href="{% url 'event_detail' event_id=event.id|default:forloop.counter %}" class="btn btn-primary"><i class="fas fa-ticket-alt"></i> Réserver</a>
+            <div class="event-likes">
+                <button class="like-btn" data-event-id="{{ event.id|default:forloop.counter }}">
+                    <i class="far fa-heart"></i>
+                </button>
+                <span class="likes-count">{{ event.likes_count|default:0 }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% empty %}
+<!-- Si aucun événement n'est trouvé -->
+<div class="no-events">
+    <i class="far fa-calendar-times"></i>
+    <h3>Aucun événement n'a été trouvé</h3>
+    <p>Essayez de modifier vos critères de recherche ou revenez plus tard.</p>
+</div>
+{% endfor %}
