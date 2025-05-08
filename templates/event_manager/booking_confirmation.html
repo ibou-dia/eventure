@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Réservation confirmée | ÉvénementsCo{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/confirmation.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="confirmation-container">
+    <div class="confirmation-box">
+        <div class="confirmation-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        
+        <h1>Réservation confirmée !</h1>
+        
+        <div class="event-details">
+            <h2>{{ event.title }}</h2>
+            <div class="event-meta">
+                <div class="event-meta-item">
+                    <i class="fas fa-calendar"></i> 
+                    <span>{{ event.date|date:"l d F Y" }}</span>
+                </div>
+                <div class="event-meta-item">
+                    <i class="fas fa-clock"></i>
+                    <span>{{ event.date|date:"H:i" }}</span>
+                </div>
+                <div class="event-meta-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>{{ event.location }}</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="ticket-details">
+            <div class="ticket-header">
+                <h3>Détails de votre réservation</h3>
+            </div>
+            
+            <div class="ticket-info">
+                <div class="info-item">
+                    <span class="label">Nom</span>
+                    <span class="value">{{ booking.name }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Email</span>
+                    <span class="value">{{ booking.email }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Nombre de places</span>
+                    <span class="value">{{ booking.num_seats }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Numéro de réservation</span>
+                    <span class="value booking-id">{{ booking.reference_number|default:"EVT-2023-" }}{{ booking.id }}</span>
+                </div>
+                <div class="info-item total">
+                    <span class="label">Total</span>
+                    <span class="value">{{ total_price|floatformat:2 }} €</span>
+                </div>
+                <div class="info-item status {% if booking.payment_status == 'completed' %}paid{% endif %}">
+                    <span class="label">Statut</span>
+                    <span class="value">{{ booking.payment_status_display|default:"Payé" }}</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="ticket-qrcode">
+            <img src="{% static 'images/qr-code-sample.png' %}" alt="QR Code">
+            <p>Présentez ce QR code à l'entrée de l'événement</p>
+        </div>
+        
+        <div class="next-steps">
+            <h3>Et maintenant ?</h3>
+            <ul>
+                <li><i class="fas fa-envelope"></i> Un email de confirmation a été envoyé à <strong>{{ booking.email }}</strong></li>
+                <li><i class="fas fa-calendar-plus"></i> Ajoutez cet événement à votre calendrier</li>
+                <li><i class="fas fa-share-alt"></i> Partagez l'événement avec vos amis</li>
+            </ul>
+        </div>
+        
+        <div class="action-buttons">
+            <a href="{% url 'home' %}" class="btn btn-outline"><i class="fas fa-home"></i> Retour à l'accueil</a>
+            <a href="#" onclick="window.print(); return false;" class="btn btn-secondary"><i class="fas fa-print"></i> Imprimer</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Animation d'entrée
+    document.addEventListener('DOMContentLoaded', function() {
+        const confirmationBox = document.querySelector('.confirmation-box');
+        const icon = document.querySelector('.confirmation-icon');
+        
+        setTimeout(() => {
+            icon.classList.add('animate');
+        }, 300);
+        
+        // Si vous avez GSAP
+        if (typeof gsap !== 'undefined') {
+            gsap.from('.confirmation-box', {
+                y: 50,
+                opacity: 0,
+                duration: 0.8,
+                ease: 'back.out(1.2)'
+            });
+            
+            gsap.from('.ticket-details, .next-steps, .action-buttons', {
+                y: 30,
+                opacity: 0,
+                stagger: 0.2,
+                delay: 0.5,
+                duration: 0.6,
+                ease: 'power2.out'
+            });
+        }
+    });
+</script>
+{% endblock %}
