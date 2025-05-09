@@ -10,6 +10,9 @@ from django.utils import timezone
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.template.loader import render_to_string
 from bson.objectid import ObjectId
+from bson.binary import Binary
+from datetime import datetime
+import base64
 
 
 # Fonction utilitaire pour convertir un ID en ObjectId si possible
@@ -169,16 +172,40 @@ def create_event(request):
         location = request.POST.get('location')
         total_seats = int(request.POST.get('total_seats', 0))
         price = float(request.POST.get('price', 0))
+        image_file = request.FILES.get('image')
         
         # Validation simplifiée
-        if not all([title, description, date_str, location, total_seats >= 0]):
+        if not all([title, description, date_str, location,image_file, total_seats >= 0]):
             messages.error(request, 'Veuillez remplir tous les champs correctement.')
             return render(request, 'event_manager/create_event.html')
-        
-        # En mode statique, rediriger simplement vers la page d'accueil
-        # Simuler la création réussie
-        messages.success(request, 'Événement créé avec succès!')
-        return redirect('home')
+        try:
+            # Conversion de la date au bon format
+            event_date = datetime.strptime(date_str, "%Y-%m-%dT%H:%M")
+            image_bytes = image_file.read()
+            image_base64 = base64.b64encode(image_bytes).decode('utf-8')
+
+            # Préparation du document à insérer
+            event_data = {
+                "title": title,
+                "description": description,
+                "date": event_date,
+                "location": location,
+                "total_seats": total_seats,
+                "price": price,
+                'image': image_base64,
+                'created_at': datetime.utcnow()
+            }
+
+            # Insérer dans la collection MongoDB
+            event_collection.insert_one(event_data)
+
+            # En mode statique, rediriger simplement vers la page d'accueil
+            # Simuler la création réussie
+            messages.success(request, 'Événement créé avec succès!')
+            return redirect('home')
+        except Exception as e:
+            messages.error(request, f"Erreur lors de la création de l'événement : {e}")
+            return render(request, 'event_manager/create_event.html')
         
     return render(request, 'event_manager/create_event.html')
 
