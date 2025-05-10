@@ -233,3 +233,9 @@ def register_view(request):
 def profile_view(request):
     # Placeholder pour le profil utilisateur
     return render(request, 'event_manager/profile.html')
+
+
+def pay_view(request):
+    # Placeholder pour l'inscription
+    return render(request, 'event_manager/pay_page.html')
+
