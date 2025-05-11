@@ -200,7 +200,8 @@ def create_event(request):
                 "price": price,
                 'image': image_base64,
                 "likes_count":0,
-                'created_at': datetime.utcnow()
+                'created_at': datetime.utcnow(),
+                "creator_id": request.user['_id']
             }
 
             # Insérer dans la collection MongoDB
@@ -439,6 +440,7 @@ def profile_view(request):
     user = request.user
     error = None
     success = None
+    filtered_events = list(event_collection.find({'creator_id': request.user['_id']}))
     
     if request.method == 'POST':
         # Déterminer quelle section du profil est mise à jour
@@ -521,7 +523,8 @@ def profile_view(request):
         'user': user,
         'bookings': bookings,
         'error': error,
-        'success': success
+        'success': success,
+        'filtered_events':filtered_events
     })
 
 # API pour la pagination AJAX des événements

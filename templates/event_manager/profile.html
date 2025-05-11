@@ -82,40 +82,42 @@
                     
                     <div class="events-grid">
                         <!-- Exemple d'événement créé -->
-                        <div class="event-card">
+                        {% for event in filtered_events %}
+                                <div class="event-card">
                             <div class="event-image">
-                                <img src="https://images.unsplash.com/photo-1511795409834-ef04bbd61622?q=80&w=500&auto=format&fit=crop" alt="Concert de Jazz">
+                                <img src="data:image/png;base64,{{ event.image }}" alt="Image de l'événement">
                                 <div class="event-date">
-                                    <span class="day">15</span>
-                                    <span class="month">Mai</span>
+                                    <span class="day">{{ event.date|date:"d" }}</span>
+                                    <span class="month">{{ event.date|date:"M" }}</span>
                                 </div>
                                 <div class="event-badge popular">Populaire</div>
                             </div>
                             <div class="event-info">
                                 <div class="event-category">
-                                    <i class="fas fa-microphone-alt"></i> Concert
+                                    <i class="fas fa-microphone-alt"></i> {{ event.type }}
                                 </div>
-                                <h3 class="event-title">Concert de Jazz</h3>
-                                <p class="event-location"><i class="fas fa-map-marker-alt"></i> Salle Pleyel, Paris</p>
-                                <p class="event-time"><i class="far fa-clock"></i> 20:00</p>
+                                <h3 class="event-title">{{ event.title }}</h3>
+                                <p class="event-location"><i class="fas fa-map-marker-alt"></i> {{ event.location }}</p>
+                                <p class="event-time"><i class="far fa-clock"></i>{{ event.date|date:"H:i" }}</p>
                                 <div class="event-footer">
                                     <div class="event-seats">
                                         <i class="fas fa-ticket-alt"></i>
-                                        <span>150 places restantes</span>
+                                        <span>{{ event.remaining_seat }} places restantes</span>
                                     </div>
                                     <div class="event-price">
-                                        <span>25 €</span>
+                                        <span>{{ event.price|floatformat:0 }} Fcfa</span>
                                     </div>
                                 </div>
                                 <div class="event-actions">
                                     <a href="#" class="btn btn-secondary"><i class="fas fa-edit"></i> Modifier</a>
                                     <div class="event-likes">
-                                        <span class="likes-count">28</span>
+                                        <span class="likes-count">{{ event.likes_count }}</span>
                                         <i class="fas fa-heart"></i>
                                     </div>
                                 </div>
                             </div>
                         </div>
+                        {% endfor %}
                     </div>
                 </div>
 
