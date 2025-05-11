@@ -1,15 +1,16 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponseRedirect
 from django.urls import reverse
 from django.contrib import messages
-from .models import event_collection
+from .models import event_collection, user_collection, booking_collection, MongoUser
 from datetime import datetime
 from django.db.models import Count
 from django.utils import timezone
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.template.loader import render_to_string
 from bson.objectid import ObjectId
+from django.contrib.auth.hashers import check_password
+from .middleware import login_required  # Utiliser notre propre décorateur login_required
 from bson.binary import Binary
 from datetime import datetime
 import base64
@@ -337,17 +338,185 @@ def like_event(request, event_id):
 
 # Pages d'authentification
 def login_view(request):
-    # Placeholder pour l'authentification
-    return render(request, 'event_manager/login.html')
+    # Si l'utilisateur est déjà connecté, rediriger vers la page d'accueil
+    if request.is_authenticated:
+        return redirect('home')
+    
+    error = None
+    next_url = request.GET.get('next', 'home')
+    
+    if request.method == 'POST':
+        username_or_email = request.POST.get('username_or_email')
+        password = request.POST.get('password')
+        
+        # Essayer de se connecter avec le nom d'utilisateur d'abord
+        user = MongoUser.authenticate(username=username_or_email, password=password)
+        
+        # Si ça ne fonctionne pas, essayer avec l'email
+        if not user:
+            user = MongoUser.authenticate(email=username_or_email, password=password)
+        
+        if user:
+            # Enregistrer l'ID utilisateur dans la session
+            request.session['user_id'] = str(user['_id'])
+            messages.success(request, f"Bienvenue, {user['username']}!")
+            
+            # Rediriger vers l'URL next si présente
+            return redirect(next_url)
+        else:
+            error = "Nom d'utilisateur ou mot de passe incorrect"
+    
+    return render(request, 'event_manager/login.html', {
+        'error': error,
+        'next': next_url
+    })
 
 def register_view(request):
-    # Placeholder pour l'inscription
-    return render(request, 'event_manager/register.html')
+    # Si l'utilisateur est déjà connecté, rediriger vers la page d'accueil
+    if request.is_authenticated:
+        return redirect('home')
+    
+    error = None
+    form_data = {}
+    
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        password2 = request.POST.get('password2')
+        first_name = request.POST.get('first_name', '')
+        last_name = request.POST.get('last_name', '')
+        
+        form_data = {
+            'username': username,
+            'email': email,
+            'first_name': first_name,
+            'last_name': last_name
+        }
+        
+        # Validation basique
+        if not all([username, email, password]):
+            error = "Tous les champs obligatoires doivent être remplis"
+        elif password != password2:
+            error = "Les mots de passe ne correspondent pas"
+        else:
+            # Créer l'utilisateur
+            user_id, error = MongoUser.create_user(
+                username=username,
+                email=email,
+                password=password,
+                first_name=first_name,
+                last_name=last_name
+            )
+            
+            if user_id:
+                # Connecter l'utilisateur automatiquement
+                request.session['user_id'] = str(user_id)
+                messages.success(request, f"Bienvenue, {username}! Votre compte a été créé avec succès.")
+                return redirect('home')
+    
+    return render(request, 'event_manager/register.html', {
+        'error': error,
+        'form_data': form_data
+    })
+
+def logout_view(request):
+    # Supprimer l'ID utilisateur de la session
+    if 'user_id' in request.session:
+        del request.session['user_id']
+    
+    messages.success(request, "Vous avez été déconnecté avec succès.")
+    return redirect('home')
 
 @login_required
 def profile_view(request):
-    # Placeholder pour le profil utilisateur
-    return render(request, 'event_manager/profile.html')
+    user = request.user
+    error = None
+    success = None
+    
+    if request.method == 'POST':
+        # Déterminer quelle section du profil est mise à jour
+        action = request.POST.get('action')
+        
+        if action == 'info':
+            # Mise à jour des informations personnelles
+            username = request.POST.get('username')
+            email = request.POST.get('email')
+            first_name = request.POST.get('first_name', '')
+            last_name = request.POST.get('last_name', '')
+            
+            # Vérifier si le nom d'utilisateur ou l'email est déjà utilisé par un autre utilisateur
+            if username != user.get('username') and user_collection.find_one({"username": username}):
+                error = "Ce nom d'utilisateur est déjà utilisé par un autre utilisateur"
+            elif email != user.get('email') and user_collection.find_one({"email": email}):
+                error = "Cette adresse email est déjà utilisée par un autre utilisateur"
+            else:
+                # Mettre à jour les informations
+                update_data = {
+                    "username": username,
+                    "email": email,
+                    "first_name": first_name,
+                    "last_name": last_name
+                }
+                
+                if MongoUser.update_user(user['_id'], **update_data):
+                    success = "Vos informations ont été mises à jour avec succès"
+                else:
+                    error = "Une erreur est survenue lors de la mise à jour de vos informations"
+                
+        elif action == 'password':
+            # Mise à jour du mot de passe
+            current_password = request.POST.get('current_password')
+            new_password = request.POST.get('new_password')
+            confirm_password = request.POST.get('confirm_password')
+            
+            # Vérifier le mot de passe actuel
+            if not check_password(current_password, user.get("password", "")):
+                error = "Mot de passe actuel incorrect"
+            elif new_password != confirm_password:
+                error = "Les nouveaux mots de passe ne correspondent pas"
+            elif not new_password:
+                error = "Le nouveau mot de passe ne peut pas être vide"
+            else:
+                # Mettre à jour le mot de passe
+                if MongoUser.update_user(user['_id'], password=new_password):
+                    success = "Votre mot de passe a été mis à jour avec succès"
+                else:
+                    error = "Une erreur est survenue lors de la mise à jour de votre mot de passe"
+    
+    # Récupérer les réservations de l'utilisateur (simuler pour l'instant)
+    # Dans un cas réel, nous les récupérerions de la base de données MongoDB
+    bookings = [
+        {
+            'id': 1,
+            'event': {
+                'title': 'Concert de Jazz',
+                'date': timezone.now() + timezone.timedelta(days=5),
+                'location': 'Salle Pleyel, Paris'
+            },
+            'num_seats': 2,
+            'total_price': 50.00,
+            'status': 'confirmed'
+        },
+        {
+            'id': 2,
+            'event': {
+                'title': 'Festival de Cinéma',
+                'date': timezone.now() + timezone.timedelta(days=15),
+                'location': 'Cinémathèque, Lyon'
+            },
+            'num_seats': 1,
+            'total_price': 15.00,
+            'status': 'pending'
+        }
+    ]
+    
+    return render(request, 'event_manager/profile.html', {
+        'user': user,
+        'bookings': bookings,
+        'error': error,
+        'success': success
+    })
 
 # API pour la pagination AJAX des événements
 def events_paginated_api(request):

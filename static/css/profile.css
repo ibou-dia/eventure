@@ -1,7 +1,66 @@
 /* Styles pour la page de profil */
 
+.profile-actions {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.back-button {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 20px;
+    border-radius: 50px;
+    background-color: white;
+    color: var(--primary-color);
+    border: 1px solid var(--primary-light);
+    cursor: pointer;
+    transition: var(--transition-default);
+    font-weight: 500;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.back-button:hover {
+    background-color: var(--primary-light);
+    color: var(--primary-dark);
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(93, 74, 219, 0.15);
+}
+
+.back-button i {
+    font-size: 0.9em;
+}
+
+.logout-button {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 20px;
+    border-radius: 50px;
+    background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: var(--transition-default);
+    font-weight: 500;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.logout-button:hover {
+    background: linear-gradient(135deg, var(--secondary-dark), var(--error-color));
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(244, 67, 54, 0.25);
+}
+
+.logout-button i {
+    font-size: 0.9em;
+}
+
 .profile-container {
-    margin: 40px 0;
+    margin: 40px 60px;
+    max-width: 1200px;
 }
 
 .profile-header {
@@ -105,43 +164,57 @@
 }
 
 .profile-tabs {
-    margin-top: 30px;
+    margin: 30px 50px;
 }
 
 .tab-buttons {
     display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 10px;
     overflow-x: auto;
+    gap: 5px;
+    padding-bottom: 2px;
+    border-bottom: 1px solid var(--border-color);
 }
 
 .tab-btn {
     background: none;
     border: none;
     font-size: 16px;
-    font-weight: 500;
     color: var(--text-light);
     cursor: pointer;
-    padding: 10px 15px;
+    padding: 12px 20px;
     transition: all 0.3s;
-    border-radius: var(--border-radius);
+    border-radius: 25px;
+    font-weight: 500;
+    position: relative;
+    margin-bottom: 5px;
 }
 
 .tab-btn:hover {
     color: var(--primary-color);
-    background-color: var(--primary-light);
+    background-color: rgba(93, 74, 219, 0.08);
 }
 
 .tab-btn.active {
     color: var(--primary-color);
-    border-bottom: 3px solid var(--primary-color);
-    background-color: var(--primary-light);
+    background-color: rgba(93, 74, 219, 0.12);
+    box-shadow: 0 2px 10px rgba(93, 74, 219, 0.15);
+}
+
+.tab-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: -7px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 30px;
+    height: 3px;
+    background: var(--primary-color);
+    border-radius: 3px;
 }
 
 .tab-pane {
     display: none;
+    padding: 10px 30px 40px;
     animation: fadeIn 0.5s;
 }
 
@@ -197,7 +270,7 @@
     background-color: var(--background-color);
     border-radius: var(--border-radius);
     padding: 15px;
-    margin: 15px 0;
+    margin: 15px 40px;
 }
 
 .registration-detail {

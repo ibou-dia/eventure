@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'base_clean.html' %}
 {% load static %}
 
 {% block title %}Mon Profil | ÉvénementsCo{% endblock %}
@@ -6,20 +6,47 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/forms.css' %}">
 <link rel="stylesheet" href="{% static 'css/events.css' %}">
+<link rel="stylesheet" href="{% static 'css/profile.css' %}">
 {% endblock %}
 
 {% block content %}
 <div class="container">
     <div class="profile-container">
+        <div class="profile-actions">
+            <a href="javascript:history.back()" class="back-button">
+                <i class="fas fa-arrow-left"></i> Retour
+            </a>
+            <a href="{% url 'logout' %}" class="logout-button">
+                <i class="fas fa-sign-out-alt"></i> Déconnexion
+            </a>
+        </div>
+        
+        {% if success %}
+        <div class="alert alert-success">
+            {{ success }}
+        </div>
+        {% endif %}
+
+        {% if error %}
+        <div class="alert alert-danger">
+            {{ error }}
+        </div>
+        {% endif %}
+
         <div class="profile-header">
             <div class="profile-avatar">
-                <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Photo de profil">
+                {% if user.profile_image %}
+                <img src="{{ user.profile_image }}" alt="Photo de profil">
+                {% else %}
+                <img src="https://ui-avatars.com/api/?name={{ user.first_name|default:user.username }}&background=random" alt="Photo de profil">
+                {% endif %}
                 <button class="edit-avatar-btn"><i class="fas fa-camera"></i></button>
             </div>
             <div class="profile-info">
-                <h1>Jean Dupont</h1>
-                <p class="profile-email">jean.dupont@exemple.com</p>
-                <p class="profile-joined">Membre depuis le 15 mars 2025</p>
+                <h1>{{ user.first_name|default:"" }} {{ user.last_name|default:"" }}</h1>
+                <p class="profile-username">@{{ user.username }}</p>
+                <p class="profile-email">{{ user.email }}</p>
+                <p class="profile-joined">Membre depuis le {{ user.date_joined|date:"d F Y" }}</p>
             </div>
             <div class="profile-stats">
                 <div class="stat">
@@ -45,7 +72,7 @@
                 <button class="tab-btn" data-tab="settings">Paramètres</button>
             </div>
 
-            <div class="tab-content">
+            <div class="tab-content" style="margin : 0 30px;">
                 <!-- Mes événements -->
                 <div class="tab-pane active" id="my-events">
                     <div class="tab-header">
@@ -178,71 +205,80 @@
                 <!-- Paramètres -->
                 <div class="tab-pane" id="settings">
                     <h2>Paramètres du compte</h2>
-                    <form class="profile-form">
+                    <form class="profile-form" method="post" action="{% url 'profile' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="info">
+                        
                         <div class="form-group">
-                            <label for="name">Nom complet</label>
-                            <input type="text" id="name" name="name" value="Jean Dupont">
+                            <label for="username">Nom d'utilisateur</label>
+                            <input type="text" id="username" name="username" value="{{ user.username }}" required>
                         </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group half">
+                                <label for="first_name">Prénom</label>
+                                <input type="text" id="first_name" name="first_name" value="{{ user.first_name|default:'' }}">
+                            </div>
+                            <div class="form-group half">
+                                <label for="last_name">Nom</label>
+                                <input type="text" id="last_name" name="last_name" value="{{ user.last_name|default:'' }}">
+                            </div>
+                        </div>
+                        
                         <div class="form-group">
-                            <label for="email">Adresse email</label>
-                            <input type="email" id="email" name="email" value="jean.dupont@exemple.com">
+                            <label for="profile-email">Adresse email</label>
+                            <input type="email" id="profile-email" name="email" value="{{ user.email }}" required>
                         </div>
+                        
                         <div class="form-group">
                             <label for="phone">Téléphone</label>
-                            <input type="text" id="phone" name="phone" value="06 12 34 56 78">
+                            <input type="tel" id="phone" name="phone" value="{{ user.phone|default:'' }}">
                         </div>
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label for="city">Ville</label>
-                                <input type="text" id="city" name="city" value="Paris">
-                            </div>
-                            <div class="form-group">
-                                <label for="postal_code">Code postal</label>
-                                <input type="text" id="postal_code" name="postal_code" value="75010">
-                            </div>
-                        </div>
+                        
                         <div class="form-group">
-                            <label for="bio">Bio</label>
-                            <textarea id="bio" name="bio" rows="4">Amateur de musique, de cinéma et d'art en général. Toujours à la recherche de nouvelles expériences culturelles.</textarea>
+                            <label for="bio">Biographie</label>
+                            <textarea id="bio" name="bio" rows="3">{{ user.bio|default:'' }}</textarea>
                         </div>
                         
-                        <div class="form-section">
-                            <h3>Modifier le mot de passe</h3>
-                            <div class="form-group">
-                                <label for="current_password">Mot de passe actuel</label>
-                                <input type="password" id="current_password" name="current_password">
-                            </div>
-                            <div class="form-grid">
-                                <div class="form-group">
-                                    <label for="new_password">Nouveau mot de passe</label>
-                                    <input type="password" id="new_password" name="new_password">
-                                </div>
-                                <div class="form-group">
-                                    <label for="confirm_password">Confirmer le mot de passe</label>
-                                    <input type="password" id="confirm_password" name="confirm_password">
-                                </div>
-                            </div>
+                        <div class="form-group checkbox-group">
+                            <input type="checkbox" id="new_events" name="new_events" {% if user.notifications_events %}checked{% endif %}>
+                            <label for="new_events">M'informer des nouveaux événements</label>
                         </div>
                         
-                        <div class="form-section">
-                            <h3>Notifications</h3>
-                            <div class="checkbox-group">
-                                <input type="checkbox" id="email_notif" name="email_notif" checked>
-                                <label for="email_notif">Recevoir des notifications par email</label>
-                            </div>
-                            <div class="checkbox-group">
-                                <input type="checkbox" id="new_events" name="new_events" checked>
-                                <label for="new_events">M'informer des nouveaux événements</label>
-                            </div>
-                            <div class="checkbox-group">
-                                <input type="checkbox" id="marketing" name="marketing">
-                                <label for="marketing">Recevoir des offres promotionnelles</label>
-                            </div>
+                        <div class="form-group checkbox-group">
+                            <input type="checkbox" id="marketing" name="marketing" {% if user.notifications_marketing %}checked{% endif %}>
+                            <label for="marketing">Recevoir des offres promotionnelles</label>
                         </div>
                         
                         <div class="form-actions">
-                            <button type="button" class="btn btn-outline">Annuler</button>
-                            <button type="submit" class="btn btn-primary">Enregistrer</button>
+                            <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
+                        </div>
+                    </form>
+                    
+                    <hr class="settings-divider">
+                    
+                    <h3>Modifier le mot de passe</h3>
+                    <form class="profile-form" method="post" action="{% url 'profile' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="password">
+                        
+                        <div class="form-group">
+                            <label for="current_password">Mot de passe actuel</label>
+                            <input type="password" id="current_password" name="current_password" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="new_password">Nouveau mot de passe</label>
+                            <input type="password" id="new_password" name="new_password" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="confirm_password">Confirmer le nouveau mot de passe</label>
+                            <input type="password" id="confirm_password" name="confirm_password" required>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">Modifier le mot de passe</button>
                         </div>
                     </form>
                 </div>
