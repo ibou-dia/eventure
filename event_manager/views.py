@@ -171,6 +171,7 @@ def create_event(request):
         description = request.POST.get('description')
         date_str = request.POST.get('date')
         location = request.POST.get('location')
+        type=request.POST.get('type')
         total_seats = int(request.POST.get('total_seats', 0))
         price = float(request.POST.get('price', 0))
         image_file = request.FILES.get('image')
@@ -188,12 +189,16 @@ def create_event(request):
             # Préparation du document à insérer
             event_data = {
                 "title": title,
+                "etat":"Nouveau",
+                "type": type,
                 "description": description,
                 "date": event_date,
                 "location": location,
                 "total_seats": total_seats,
+                "remaining_seat": total_seats,
                 "price": price,
                 'image': image_base64,
+                "likes_count":0,
                 'created_at': datetime.utcnow()
             }
 
