@@ -19,7 +19,7 @@
             <div class="navbar-menu">
                 <ul>
                     <li><a href="{% url 'home' %}">Accueil</a></li>
-                    <li><a href="{% url 'create_event' %}">Créer un événement</a></li>
+                    <li><a href="{% if is_authenticated %}{% url 'create_event' %}{% else %}{% url 'login' %}?next={% url 'create_event' %}{% endif %}">Créer un événement</a></li>
                     {% if is_authenticated %}
                         <li class="nav-profile">
                             <a href="{% url 'profile' %}" class="profile-link">

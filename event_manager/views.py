@@ -164,6 +164,7 @@ def event_detail(request, event_id):
         'comments': comments
     })
 
+@login_required
 def create_event(request):
     if request.method == 'POST':
         # Dans un contexte réel, on utiliserait un formulaire Django

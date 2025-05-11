@@ -16,7 +16,7 @@
         <p>Découvrez des concerts, festivals, conférences et bien plus encore. Rejoignez notre communauté d'événements passionnants près de chez vous.</p>
         <div class="hero-buttons">
             <a href="#events-list" class="btn btn-primary"><i class="fas fa-search"></i> Découvrir</a>
-            <a href="{% url 'create_event' %}" class="btn btn-outline"><i class="fas fa-plus-circle"></i> Créer un événement</a>
+            <a href="{% if is_authenticated %}{% url 'create_event' %}{% else %}{% url 'login' %}?next={% url 'create_event' %}{% endif %}" class="btn btn-outline"><i class="fas fa-plus-circle"></i> Créer un événement</a>
         </div>
         <div class="hero-stats">
             <div class="stat">
@@ -109,7 +109,7 @@
     <div class="cta-content">
         <h2>Vous organisez un événement ?</h2>
         <p>Faites la promotion de votre événement et vendez des billets en quelques clics.</p>
-        <a href="{% url 'create_event' %}" class="btn btn-primary"><i class="fas fa-plus-circle"></i> Créer un événement</a>
+        <a href="{% if is_authenticated %}{% url 'create_event' %}{% else %}{% url 'login' %}?next={% url 'create_event' %}{% endif %}" class="btn btn-primary"><i class="fas fa-plus-circle"></i> Créer un événement</a>
     </div>
     <div class="cta-shapes">
         <div class="cta-shape shape-1"></div>
