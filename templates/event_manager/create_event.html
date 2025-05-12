@@ -44,9 +44,19 @@
                 </div>
                 
                 <div class="form-group">
-                    <label for="price">Prix par personne (€)*</label>
+                    <label for="price">Prix par personne (Fcfa)*</label>
                     <input type="number" name="price" id="price" min="0" step="0.01" value="0" required>
                     <small>Indiquez 0 pour un événement gratuit</small>
+                </div>
+                <div class="form-group">
+                    <label for="type">Type:</label>
+                    <select name="type" id="type">
+                      <option value="atelier">Atelier</option>
+                      <option value="concert">Concert</option>
+                      <option value="conference">Conférence</option>
+                      <option value="festival">Festival</option>
+                      <option value="sport">Sport</option>
+                    </select>
                 </div>
             </div>
             

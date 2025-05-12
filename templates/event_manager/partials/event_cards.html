@@ -42,17 +42,17 @@
             <div class="event-seats"
                 {% if event.remaining_seat < 10 %}data-tooltip="Il ne reste que quelques places !"{% endif %}>
                 <i class="fas fa-ticket-alt"></i>
-                {% if event.remaining_seats < 10 %}
-                <span class="few-left">{{ event.remaining_seats }} places restantes</span>
+                {% if event.remaining_seat < 10 %}
+                <span class="few-left">{{ event.remaining_seat }} places restantes</span>
                 {% else %}
-                <span>{{ event.remaining_seats }} places restantes</span>
+                <span>{{ event.remaining_seat }} places restantes</span>
                 {% endif %}
             </div>
             <div class="event-price">
                 {% if event.price == 0 %}
                 <span class="free">Gratuit</span>
                 {% else %}
-                <span>{{ event.price|floatformat:0 }} €</span>
+                <span>{{ event.price|floatformat:0 }} Fcfa</span>
                 {% endif %}
             </div>
         </div>

@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'base_clean.html' %}
 {% load static %}
 
 {% block title %}Inscription | ÉvénementsCo{% endblock %}
@@ -12,22 +12,39 @@
     <div class="auth-card">
         <h2 class="auth-title">Créer un compte</h2>
         
+        {% if error %}
+        <div class="alert alert-danger">
+            {{ error }}
+        </div>
+        {% endif %}
+        
         <form method="post" action="{% url 'register' %}" class="auth-form">
             {% csrf_token %}
             
             <div class="form-group">
                 <label for="username">Nom d'utilisateur</label>
-                <input type="text" name="username" id="username" required>
+                <input type="text" name="username" id="username" value="{{ form_data.username }}" required autofocus>
             </div>
             
             <div class="form-group">
                 <label for="email">Adresse email</label>
-                <input type="email" name="email" id="email" required>
+                <input type="email" name="email" id="email" value="{{ form_data.email }}" required>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group half">
+                    <label for="first_name">Prénom</label>
+                    <input type="text" name="first_name" id="first_name" value="{{ form_data.first_name }}">
+                </div>
+                <div class="form-group half">
+                    <label for="last_name">Nom</label>
+                    <input type="text" name="last_name" id="last_name" value="{{ form_data.last_name }}">
+                </div>
             </div>
             
             <div class="form-group">
-                <label for="password1">Mot de passe</label>
-                <input type="password" name="password1" id="password1" required>
+                <label for="password">Mot de passe</label>
+                <input type="password" name="password" id="password" required>
                 <small>Utilisez au moins 8 caractères avec des lettres et des chiffres.</small>
             </div>
             

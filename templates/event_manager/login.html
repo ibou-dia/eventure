@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'base_clean.html' %}
 {% load static %}
 
 {% block title %}Connexion | ÉvénementsCo{% endblock %}
@@ -12,12 +12,19 @@
     <div class="auth-card">
         <h2 class="auth-title">Connexion</h2>
         
-        <form method="post" action="{% url 'login' %}" class="auth-form">
+        {% if error %}
+        <div class="alert alert-danger">
+            {{ error }}
+        </div>
+        {% endif %}
+        
+        <form method="post" action="{% url 'login' %}{% if next %}?next={{ next }}{% endif %}" class="auth-form">
             {% csrf_token %}
+            <input type="hidden" name="next" value="{{ next }}">
             
             <div class="form-group">
-                <label for="username">Nom d'utilisateur ou email</label>
-                <input type="text" name="username" id="username" required>
+                <label for="username_or_email">Nom d'utilisateur ou Email</label>
+                <input type="text" name="username_or_email" id="username_or_email" required autofocus>
             </div>
             
             <div class="form-group">
