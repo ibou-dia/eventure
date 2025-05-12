@@ -1,58 +1,17 @@
-<!-- templates/paiement.html -->
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <title>Paiement Mobile Money</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f6f8;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-        .payment-form {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            width: 350px;
-        }
-        .payment-form h2 {
-            margin-bottom: 20px;
-            color: #333;
-        }
-        .payment-form label {
-            display: block;
-            margin: 10px 0 5px;
-        }
-        .payment-form input, .payment-form select {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 15px;
-            border-radius: 6px;
-            border: 1px solid #ccc;
-        }
-        .payment-form button {
-            background-color: #2e86de;
-            color: white;
-            border: none;
-            padding: 12px;
-            width: 100%;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-        .payment-form button:hover {
-            background-color: #1e66b3;
-        }
-    </style>
-</head>
-<body>
+{% extends 'base.html' %}
+{% load static %}
 
-<div class="payment-form">
-    <h2>Confirmer le paiement</h2>
+{% block title %}Connexion | ÉvénementsCo{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/forms.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div class="pay-container">
+    <div class="pay-card">
+    <h2>Reservation</h2>
     <form method="POST" action="{% url 'payment' %}">
         {% csrf_token %}
         <label for="nom">Nom</label>
@@ -62,7 +21,7 @@
         <input type="text" name="telephone" placeholder="77XXXXXXXX" required>
 
         <label for="montant">Montant (FCFA)</label>
-        <input type="number" name="montant" required>
+        <input type="number" name="montant" value="{{ evenement.prix }}" readonly>
 
         <label for="operateur">Opérateur</label>
         <select name="operateur" required>
@@ -73,7 +32,7 @@
 
         <button type="submit">Payer</button>
     </form>
+    </div>
 </div>
 
-</body>
-</html>
+{% endblock %}

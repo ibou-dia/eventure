@@ -474,7 +474,7 @@
 }
 
 /* Pagination */
-.pagination-container {
+.pagination-section {
     display: flex;
     justify-content: center;
     margin: 40px 0;
@@ -483,44 +483,84 @@
 .pagination {
     display: flex;
     align-items: center;
-    gap: 5px;
+    justify-content: center; /* Centrer horizontalement les boutons */
+    gap: 10px; /* Espacement légèrement plus grand entre les boutons */
+    padding: 15px;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 50px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    backdrop-filter: blur(5px);
+    width: fit-content; /* Pour s'assurer que le conteneur n'est pas trop large */
+    margin: 0 auto; /* Centre horizontalement le conteneur */
 }
 
-.pagination-number, 
-.pagination-arrow {
+.pagination a {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background-color: white;
-    color: var(--text-color);
+    width: 45px;
+    height: 45px;
+    border-radius: 50%; /* Forme parfaitement circulaire */
     font-weight: 600;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    transition: all 0.3s;
+    font-size: 16px;
+    color: var(--text-color);
+    background-color: transparent; /* Fond transparent pour les pages inactives */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    text-decoration: none;
+    border: 2px solid #e0e0e0; /* Bordure légère pour tous les boutons */
+    margin: 0 2px;
 }
 
-.pagination-number:hover,
-.pagination-arrow:hover {
-    background-color: var(--primary-light);
-    color: var(--primary-dark);
-    transform: translateY(-2px);
+.pagination a:hover {
+    background-color: rgba(255, 255, 255, 0.8);
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 5px 15px rgba(93, 74, 219, 0.15);
+    color: var(--primary-color);
+    border-color: var(--primary-color);
 }
 
-.pagination-number.active {
-    background: var(--gradient-primary);
+.pagination a.active {
+    background: var(--gradient-primary); /* Utiliser le dégradé pour la page active */
     color: white;
+    box-shadow: 0 5px 15px rgba(93, 74, 219, 0.3);
+    transform: scale(1.1);
+    border-color: transparent; /* Pas de bordure visible pour le bouton actif */
 }
 
-.pagination-arrow.disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+.pagination a.active:hover {
+    transform: translateY(-3px) scale(1.15);
+    opacity: 0.95; /* Léger effet au survol même sur le bouton actif */
+}
+
+.pagination a i {
+    font-size: 14px;
 }
 
 .pagination-dots {
     margin: 0 5px;
     color: var(--text-light);
+    align-self: center;
+    font-weight: 600;
+}
+
+/* Animation pour le chargement des événements */
+.loading {
+    text-align: center;
+    padding: 40px;
+    font-size: 16px;
+    color: var(--primary-color);
+    grid-column: 1 / -1;
+}
+
+.loading i {
+    margin-right: 10px;
+    animation: spin 1s infinite linear;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
 /* Section CTA */

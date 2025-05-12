@@ -21,9 +21,9 @@
 }
 
 .event-card:hover {
-    transform: translateY(-8px);
-    box-shadow: var(--box-shadow-hover);
-    border-color: rgba(93, 74, 219, 0.1);
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1), 0 5px 15px rgba(93, 74, 219, 0.2);
+    border-color: rgba(93, 74, 219, 0.2);
 }
 
 .event-card:after {
@@ -45,7 +45,7 @@
 
 .event-image {
     position: relative;
-    height: 200px;
+    height: 160px;
     overflow: hidden;
 }
 
@@ -117,23 +117,26 @@
 }
 
 .event-info {
-    padding: 20px;
+    padding: 15px;
     flex-grow: 1;
     display: flex;
     flex-direction: column;
 }
 
 .event-title {
-    font-size: 18px;
-    margin-bottom: 10px;
+    font-size: 16px;
+    margin-bottom: 6px;
     font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .event-location,
 .event-time {
-    font-size: 14px;
+    font-size: 13px;
     color: var(--text-light);
-    margin-bottom: 6px;
+    margin-bottom: 4px;
 }
 
 .event-location i,
@@ -142,10 +145,7 @@
 }
 
 .event-excerpt {
-    margin: 10px 0;
-    font-size: 14px;
-    color: var(--text-light);
-    line-height: 1.5;
+    display: none; /* Cache complètement la description */
 }
 
 .event-footer {

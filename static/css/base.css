@@ -109,8 +109,7 @@ a:hover {
 
 .btn-primary {
     background: linear-gradient(135deg, #6a5be2, #4233b3); /* Gradient plus foncé et contrasté */
-    color: white;
-    text-shadow: 0px 1px 3px rgba(0, 0, 0, 0.5); /* Ombre plus prononcée */
+    color: white !important;
     font-weight: 700;
     letter-spacing: 0.5px;
     box-shadow: 0 4px 15px rgba(93, 74, 219, 0.3), inset 0 1px 0px rgba(255, 255, 255, 0.3);

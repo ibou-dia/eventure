@@ -50,7 +50,7 @@
         <div class="filter-options">
             <div class="filter-group">
                 <i class="fas fa-tag"></i>
-                <select>
+                <select id="type-filter">
                     <option value="">Tous les types</option>
                     <option value="concert">Concerts</option>
                     <option value="festival">Festivals</option>
@@ -61,7 +61,7 @@
             </div>
             <div class="filter-group">
                 <i class="fas fa-calendar-alt"></i>
-                <select>
+                <select id="date-filter">
                     <option value="">Toutes les dates</option>
                     <option value="today">Aujourd'hui</option>
                     <option value="tomorrow">Demain</option>
@@ -72,7 +72,7 @@
             </div>
             <div class="filter-group">
                 <i class="fas fa-map-marker-alt"></i>
-                <select>
+                <select id="city-filter">
                     <option value="">Toutes les villes</option>
                     <option value="paris">Paris</option>
                     <option value="lyon">Lyon</option>
@@ -94,411 +94,15 @@
         </div>
     </div>
 
-    <div class="events-grid">
-        {% for event in events %}
-        <div class="event-card">
-            <div class="event-image">
-                {% if event.image_url %}
-                <img src="{{ event.image_url }}" alt="{{ event.title }}">
-                {% else %}
-                <img src="https://images.unsplash.com/photo-1511795409834-ef04bbd61622?q=80&w=500&auto=format&fit=crop" alt="{{ event.title }}">
-                {% endif %}
-                <div class="event-date">
-                    <span class="day">{{ event.date|date:"d" }}</span>
-                    <span class="month">{{ event.date|date:"M" }}</span>
-                </div>
-                {% if event.remaining_seats < 10 and event.remaining_seats > 0 %}
-                <div class="event-badge last-seats">Dernières places</div>
-                {% elif forloop.counter == 1 %}
-                <div class="event-badge popular">Populaire</div>
-                {% elif forloop.counter == 2 %}
-                <div class="event-badge new">Nouveau</div>
-                {% else %}
-                <div class="event-badge last-seats">Dernières places</div>
-                {% endif %}
-            </div>
-            <div class="event-info">
-                <div class="event-category">
-                    {% if forloop.counter|divisibleby:3 %}
-                    <i class="fas fa-microphone-alt"></i> Concert
-                    {% elif forloop.counter|divisibleby:2 %}
-                    <i class="fas fa-film"></i> Festival
-                    {% else %}
-                    <i class="fas fa-graduation-cap"></i> Conférence
-                    {% endif %}
-                </div>
-                <h3 class="event-title">{{ event.title }}</h3>
-                <p class="event-location"><i class="fas fa-map-marker-alt"></i> {{ event.location }}</p>
-                <p class="event-time"><i class="far fa-clock"></i> {{ event.date|date:"H:i" }}</p>
-                <div class="event-excerpt">
-                    {{ event.description|truncatechars:80 }}
-                </div>
-                <div class="event-footer">
-                    <div class="event-seats"
-                        {% if event.remaining_seat < 10 %}data-tooltip="Il ne reste que quelques places !"{% endif %}>
-                        <i class="fas fa-ticket-alt"></i>
-                        <span {% if event.remaining_seat < 10 %}class="few-left"{% endif %}>
-                            {{ event.remaining_seat }} places restantes
-                        </span>
-                    </div>
-                    <div class="event-price">
-                        {% if event.price == 0 %}
-                        <span class="free">Gratuit</span>
-                        {% else %}
-                        <span>{{ event.price }} €</span>
-                        {% endif %}
-                    </div>
-                </div>
-                <div class="event-actions">
-                    <a href="#" class="btn btn-primary"><i class="fas fa-ticket-alt"></i> Réserver</a>
-                    <div class="event-likes">
-                        <button class="like-btn" data-event-id="{{ event.id }}">
-                            <i class="far fa-heart"></i>
-                        </button>
-                        <span class="likes-count">{{ event.likes_count|default:0 }}</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-        {% empty %}
-        <!-- Ajouter des événements statiques pour la démo -->
-        <!-- Événement 1 -->
-        <div class="event-card">
-            <div class="event-image">
-                <img src="https://images.unsplash.com/photo-1511795409834-ef04bbd61622?q=80&w=500&auto=format&fit=crop" alt="Concert de Jazz">
-                <div class="event-date">
-                    <span class="day">15</span>
-                    <span class="month">Mai</span>
-                </div>
-                <div class="event-badge popular">Populaire</div>
-            </div>
-            <div class="event-info">
-                <div class="event-category">
-                    <i class="fas fa-microphone-alt"></i> Concert
-                </div>
-                <h3 class="event-title">Concert de Jazz</h3>
-                <p class="event-location"><i class="fas fa-map-marker-alt"></i> Salle Pleyel, Paris</p>
-                <p class="event-time"><i class="far fa-clock"></i> 20:00</p>
-                <div class="event-excerpt">
-                    Découvrez les plus grands standards du jazz avec des musiciens de renommée internationale.
-                </div>
-                <div class="event-footer">
-                    <div class="event-seats">
-                        <i class="fas fa-ticket-alt"></i>
-                        <span>150 places restantes</span>
-                    </div>
-                    <div class="event-price">
-                        <span>25 €</span>
-                    </div>
-                </div>
-                <div class="event-actions">
-                    <a href="javascript:void(0);" class="btn btn-primary"><i class="fas fa-ticket-alt"></i> Réserver</a>
-                    <div class="event-likes">
-                        <button class="like-btn" data-event-id="1">
-                            <i class="far fa-heart"></i>
-                        </button>
-                        <span class="likes-count">42</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Événement 2 -->
-        <div class="event-card">
-            <div class="event-image">
-                <img src="https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?q=80&w=500&auto=format&fit=crop" alt="Festival de Cinéma">
-                <div class="event-date">
-                    <span class="day">20</span>
-                    <span class="month">Mai</span>
-                </div>
-                <div class="event-badge new">Nouveau</div>
-            </div>
-            <div class="event-info">
-                <div class="event-category">
-                    <i class="fas fa-film"></i> Festival
-                </div>
-                <h3 class="event-title">Festival de Cinéma</h3>
-                <p class="event-location"><i class="fas fa-map-marker-alt"></i> Cinémathèque, Lyon</p>
-                <p class="event-time"><i class="far fa-clock"></i> 14:00</p>
-                <div class="event-excerpt">
-                    Projections de films indépendants et rencontres avec les réalisateurs.
-                </div>
-                <div class="event-footer">
-                    <div class="event-seats">
-                        <i class="fas fa-ticket-alt"></i>
-                        <span>80 places restantes</span>
-                    </div>
-                    <div class="event-price">
-                        <span>15 €</span>
-                    </div>
-                </div>
-                <div class="event-actions">
-                    <a href="javascript:void(0);" class="btn btn-primary"><i class="fas fa-ticket-alt"></i> Réserver</a>
-                    <div class="event-likes">
-                        <button class="like-btn" data-event-id="2">
-                            <i class="far fa-heart"></i>
-                        </button>
-                        <span class="likes-count">28</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Événement 3 -->
-        <div class="event-card">
-            <div class="event-image">
-                <img src="https://images.unsplash.com/photo-1475721027785-f74eccf877e2?q=80&w=500&auto=format&fit=crop" alt="Atelier Cuisine">
-                <div class="event-date">
-                    <span class="day">25</span>
-                    <span class="month">Mai</span>
-                </div>
-            </div>
-            <div class="event-info">
-                <div class="event-category">
-                    <i class="fas fa-utensils"></i> Atelier
-                </div>
-                <h3 class="event-title">Atelier Cuisine Japonaise</h3>
-                <p class="event-location"><i class="fas fa-map-marker-alt"></i> École de Cuisine, Bordeaux</p>
-                <p class="event-time"><i class="far fa-clock"></i> 18:30</p>
-                <div class="event-excerpt">
-                    Apprenez à préparer des sushis et autres spécialités japonaises avec un chef renommé.
-                </div>
-                <div class="event-footer">
-                    <div class="event-seats" data-tooltip="Il ne reste que quelques places !">
-                        <i class="fas fa-ticket-alt"></i>
-                        <span class="few-left">3 places restantes</span>
-                    </div>
-                    <div class="event-price">
-                        <span>45 €</span>
-                    </div>
-                </div>
-                <div class="event-actions">
-                    <a href="javascript:void(0);" class="btn btn-primary"><i class="fas fa-ticket-alt"></i> Réserver</a>
-                    <div class="event-likes">
-                        <button class="like-btn" data-event-id="3">
-                            <i class="far fa-heart"></i>
-                        </button>
-                        <span class="likes-count">14</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Événement 4 -->
-        <div class="event-card">
-            <div class="event-image">
-                <img src="https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?q=80&w=500&auto=format&fit=crop" alt="Conférence Tech">
-                <div class="event-date">
-                    <span class="day">30</span>
-                    <span class="month">Mai</span>
-                </div>
-            </div>
-            <div class="event-info">
-                <div class="event-category">
-                    <i class="fas fa-laptop-code"></i> Conférence
-                </div>
-                <h3 class="event-title">Conférence sur l'IA</h3>
-                <p class="event-location"><i class="fas fa-map-marker-alt"></i> Centre des Congrès, Marseille</p>
-                <p class="event-time"><i class="far fa-clock"></i> 10:00</p>
-                <div class="event-excerpt">
-                    Exploration des dernières avancées en intelligence artificielle et leurs applications.
-                </div>
-                <div class="event-footer">
-                    <div class="event-seats">
-                        <i class="fas fa-ticket-alt"></i>
-                        <span>120 places restantes</span>
-                    </div>
-                    <div class="event-price">
-                        <span class="free">Gratuit</span>
-                    </div>
-                </div>
-                <div class="event-actions">
-                    <a href="javascript:void(0);" class="btn btn-primary"><i class="fas fa-ticket-alt"></i> Réserver</a>
-                    <div class="event-likes">
-                        <button class="like-btn" data-event-id="4">
-                            <i class="far fa-heart"></i>
-                        </button>
-                        <span class="likes-count">56</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Événement 5 -->
-        <div class="event-card">
-            <div class="event-image">
-                <img src="https://images.unsplash.com/photo-1498654896293-37aacf113fd9?q=80&w=500&auto=format&fit=crop" alt="Festival de musique">
-                <div class="event-date">
-                    <span class="day">2</span>
-                    <span class="month">Juin</span>
-                </div>
-                <div class="event-badge popular">Populaire</div>
-            </div>
-            <div class="event-info">
-                <div class="event-category">
-                    <i class="fas fa-music"></i> Festival
-                </div>
-                <h3 class="event-title">Festival Électronique</h3>
-                <p class="event-location"><i class="fas fa-map-marker-alt"></i> Parc des Expositions, Lille</p>
-                <p class="event-time"><i class="far fa-clock"></i> 20:00</p>
-                <div class="event-excerpt">
-                    Trois jours de musique électronique avec les meilleurs DJs internationaux.
-                </div>
-                <div class="event-footer">
-                    <div class="event-seats">
-                        <i class="fas fa-ticket-alt"></i>
-                        <span>500 places restantes</span>
-                    </div>
-                    <div class="event-price">
-                        <span>60 €</span>
-                    </div>
-                </div>
-                <div class="event-actions">
-                    <a href="javascript:void(0);" class="btn btn-primary"><i class="fas fa-ticket-alt"></i> Réserver</a>
-                    <div class="event-likes">
-                        <button class="like-btn" data-event-id="5">
-                            <i class="far fa-heart"></i>
-                        </button>
-                        <span class="likes-count">87</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Événement 6 -->
-        <div class="event-card">
-            <div class="event-image">
-                <img src="https://images.unsplash.com/photo-1526401485004-46910ecc8e51?q=80&w=500&auto=format&fit=crop" alt="Tournoi sportif">
-                <div class="event-date">
-                    <span class="day">5</span>
-                    <span class="month">Juin</span>
-                </div>
-            </div>
-            <div class="event-info">
-                <div class="event-category">
-                    <i class="fas fa-running"></i> Sport
-                </div>
-                <h3 class="event-title">Marathon de Paris</h3>
-                <p class="event-location"><i class="fas fa-map-marker-alt"></i> Arc de Triomphe, Paris</p>
-                <p class="event-time"><i class="far fa-clock"></i> 08:00</p>
-                <div class="event-excerpt">
-                    Le marathon annuel de Paris, parcourez 42km à travers les plus beaux monuments de la capitale.
-                </div>
-                <div class="event-footer">
-                    <div class="event-seats">
-                        <i class="fas fa-ticket-alt"></i>
-                        <span>200 places restantes</span>
-                    </div>
-                    <div class="event-price">
-                        <span>40 €</span>
-                    </div>
-                </div>
-                <div class="event-actions">
-                    <a href="javascript:void(0);" class="btn btn-primary"><i class="fas fa-ticket-alt"></i> Réserver</a>
-                    <div class="event-likes">
-                        <button class="like-btn" data-event-id="6">
-                            <i class="far fa-heart"></i>
-                        </button>
-                        <span class="likes-count">34</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Événement 7 -->
-        <div class="event-card">
-            <div class="event-image">
-                <img src="https://images.unsplash.com/photo-1523580494863-6f3031224c94?q=80&w=500&auto=format&fit=crop" alt="Workshop">
-                <div class="event-date">
-                    <span class="day">10</span>
-                    <span class="month">Juin</span>
-                </div>
-                <div class="event-badge new">Nouveau</div>
-            </div>
-            <div class="event-info">
-                <div class="event-category">
-                    <i class="fas fa-chalkboard-teacher"></i> Formation
-                </div>
-                <h3 class="event-title">Atelier Photographie</h3>
-                <p class="event-location"><i class="fas fa-map-marker-alt"></i> Studio Photo, Nantes</p>
-                <p class="event-time"><i class="far fa-clock"></i> 14:30</p>
-                <div class="event-excerpt">
-                    Perfectionnez vos techniques de photographie avec un professionnel reconnu.
-                </div>
-                <div class="event-footer">
-                    <div class="event-seats">
-                        <i class="fas fa-ticket-alt"></i>
-                        <span>15 places restantes</span>
-                    </div>
-                    <div class="event-price">
-                        <span>35 €</span>
-                    </div>
-                </div>
-                <div class="event-actions">
-                    <a href="javascript:void(0);" class="btn btn-primary"><i class="fas fa-ticket-alt"></i> Réserver</a>
-                    <div class="event-likes">
-                        <button class="like-btn" data-event-id="7">
-                            <i class="far fa-heart"></i>
-                        </button>
-                        <span class="likes-count">19</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Événement 8 -->
-        <div class="event-card">
-            <div class="event-image">
-                <img src="https://images.unsplash.com/photo-1507608616759-54f48f0af0ee?q=80&w=500&auto=format&fit=crop" alt="Visite guidée">
-                <div class="event-date">
-                    <span class="day">15</span>
-                    <span class="month">Juin</span>
-                </div>
-            </div>
-            <div class="event-info">
-                <div class="event-category">
-                    <i class="fas fa-globe-europe"></i> Voyage
-                </div>
-                <h3 class="event-title">Visite Châteaux de la Loire</h3>
-                <p class="event-location"><i class="fas fa-map-marker-alt"></i> Tours</p>
-                <p class="event-time"><i class="far fa-clock"></i> 09:00</p>
-                <div class="event-excerpt">
-                    Découverte des plus beaux châteaux de la Loire avec un guide historien.
-                </div>
-                <div class="event-footer">
-                    <div class="event-seats" data-tooltip="Il ne reste que quelques places !">
-                        <i class="fas fa-ticket-alt"></i>
-                        <span class="few-left">5 places restantes</span>
-                    </div>
-                    <div class="event-price">
-                        <span>75 €</span>
-                    </div>
-                </div>
-                <div class="event-actions">
-                    <a href="javascript:void(0);" class="btn btn-primary"><i class="fas fa-ticket-alt"></i> Réserver</a>
-                    <div class="event-likes">
-                        <button class="like-btn" data-event-id="8">
-                            <i class="far fa-heart"></i>
-                        </button>
-                        <span class="likes-count">26</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-        {% endfor %}
+    <!-- Conteneur des événements chargés dynamiquement -->
+    <div class="events-grid" id="events-container">
+        {% include 'event_manager/partials/event_cards.html' %}
     </div>
 
-    <div class="pagination-container">
-        <div class="pagination">
-            <a href="#" class="pagination-arrow disabled"><i class="fas fa-chevron-left"></i></a>
-            <a href="#" class="pagination-number active">1</a>
-            <a href="#" class="pagination-number">2</a>
-            <a href="#" class="pagination-number">3</a>
-            <span class="pagination-dots">...</span>
-            <a href="#" class="pagination-number">8</a>
-            <a href="#" class="pagination-arrow"><i class="fas fa-chevron-right"></i></a>
-        </div>
-    </div>
+    <!-- Pagination ajoutée avec AJAX -->
+    <section class="pagination-section" id="pagination-container">
+        {% include 'event_manager/partials/pagination.html' %}
+    </section>
 </section>
 
 <section class="cta-section">
@@ -565,38 +169,92 @@
 {% endblock %}
 
 {% block extra_js %}
-
 <!-- GSAP pour les animations -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 
 <!-- Script personnalisé pour la barre de recherche -->
-
 <script src="{% static 'js/search.js' %}"></script>
 
 <script>
     // Code pour gérer les likes (simulé pour le frontend)
-    document.querySelectorAll('.like-btn').forEach(button => {
-        button.addEventListener('click', function() {
-            const eventId = this.dataset.eventId;
-            const icon = this.querySelector('i');
-            const likesCount = this.parentElement.querySelector('.likes-count');
+    function initLikeButtons() {
+        document.querySelectorAll('.like-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const eventId = this.dataset.eventId;
+                const icon = this.querySelector('i');
+                const likesCount = this.parentElement.querySelector('.likes-count');
 
-            // Simuler l'alternance de l'icône de like
-            if (icon.classList.contains('far')) {
-                icon.classList.remove('far');
-                icon.classList.add('fas');
-                icon.classList.add('liked');
-                likesCount.textContent = parseInt(likesCount.textContent) + 1;
-            } else {
-                icon.classList.remove('fas');
-                icon.classList.remove('liked');
-                icon.classList.add('far');
-                likesCount.textContent = parseInt(likesCount.textContent) - 1;
-            }
+                // Simuler l'alternance de l'icône de like
+                if (icon.classList.contains('far')) {
+                    icon.classList.remove('far');
+                    icon.classList.add('fas');
+                    icon.classList.add('liked');
+                    likesCount.textContent = parseInt(likesCount.textContent) + 1;
+                } else {
+                    icon.classList.remove('fas');
+                    icon.classList.remove('liked');
+                    icon.classList.add('far');
+                    likesCount.textContent = parseInt(likesCount.textContent) - 1;
+                }
 
-            // En production, ceci serait un appel AJAX au backend
-            console.log(`Like toggled for event ${eventId}`);
+                // En production, ceci serait un appel AJAX au backend
+                console.log(`Like toggled for event ${eventId}`);
+            });
         });
+    }
+    
+    // Initialiser les boutons de like au chargement initial
+    initLikeButtons();
+    
+    // AJAX Pagination
+    document.addEventListener('DOMContentLoaded', function() {
+        // Gestion des clics sur les liens de pagination
+        document.body.addEventListener('click', function(e) {
+            const target = e.target;
+            const pageLink = target.closest('.page-link');
+            
+            if (pageLink) {
+                e.preventDefault();
+                
+                // Récupérer le numéro de page
+                const page = pageLink.dataset.page;
+                
+                // Scroll vers le haut de la section d'événements
+                document.getElementById('events-list').scrollIntoView({behavior: 'smooth'});
+                
+                // Charger les événements de cette page
+                loadPage(page);
+            }
+        });
+        
+        // Fonction pour charger une page d'événements via AJAX
+        function loadPage(page) {
+            // Afficher un indicateur de chargement
+            const eventsContainer = document.getElementById('events-container');
+            const paginationContainer = document.getElementById('pagination-container');
+            
+            eventsContainer.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Chargement...</div>';
+            
+            // Faire la requête AJAX
+            fetch(`/api/events/?page=${page}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Mettre à jour les conteneurs avec les nouvelles données
+                        eventsContainer.innerHTML = data.events_html;
+                        paginationContainer.innerHTML = data.pagination_html;
+                        
+                        // Réappliquer les écouteurs d'événements aux nouveaux éléments
+                        initLikeButtons();
+                    } else {
+                        eventsContainer.innerHTML = '<div class="error">Une erreur est survenue lors du chargement des événements.</div>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                    eventsContainer.innerHTML = '<div class="error">Une erreur est survenue lors du chargement des événements.</div>';
+                });
+        }
     });
 </script>
 {% endblock %}
