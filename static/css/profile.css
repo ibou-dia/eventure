@@ -2,8 +2,9 @@
 
 .profile-actions {
     display: flex;
-    gap: 15px;
-    margin-bottom: 30px;
+    justify-content: space-between;
+    /* gap: calc(100vw - 270px); */
+    margin-bottom: 10px;
 }
 
 .back-button {
@@ -33,6 +34,10 @@
     font-size: 0.9em;
 }
 
+h2, h3 {
+    margin : 10px 0
+}
+
 .logout-button {
     display: flex;
     align-items: center;
@@ -59,8 +64,7 @@
 }
 
 .profile-container {
-    margin: 40px 60px;
-    max-width: 1200px;
+    margin: 20px 10px;
 }
 
 .profile-header {
@@ -164,7 +168,7 @@
 }
 
 .profile-tabs {
-    margin: 30px 50px;
+    margin: 30px 30px;
 }
 
 .tab-buttons {
@@ -214,7 +218,7 @@
 
 .tab-pane {
     display: none;
-    padding: 10px 30px 40px;
+    padding: 10px 0px 40px;
     animation: fadeIn 0.5s;
 }
 

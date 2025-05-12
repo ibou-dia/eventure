@@ -292,20 +292,17 @@ a:hover {
 
 /* Layout propre (sans navbar/footer) */
 .clean-layout {
-    background: var(--gradient-primary);
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    /* align-items: center; */
+    /* justify-content: center; */
     padding: 0;
 }
 
 .clean-layout .main-content {
     width: 100%;
-    max-width: 1200px;
     margin: 0 auto;
-    padding: 0 20px;
     position: relative;
     z-index: 10;
 }

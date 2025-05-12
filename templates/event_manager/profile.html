@@ -232,10 +232,10 @@
                             <input type="email" id="profile-email" name="email" value="{{ user.email }}" required>
                         </div>
                         
-                        <div class="form-group">
+                        {% comment %} <div class="form-group">
                             <label for="phone">Téléphone</label>
                             <input type="tel" id="phone" name="phone" value="{{ user.phone|default:'' }}">
-                        </div>
+                        </div> {% endcomment %}
                         
                         <div class="form-group">
                             <label for="bio">Biographie</label>
