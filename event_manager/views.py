@@ -356,15 +356,15 @@ def register_for_event(request, event_id):
                 booking_id = 1  # Simuler un ID de réservation
                 
                 # Dans un environnement de production, nous ajouterions la réservation à une collection
-                # booking_data = {
-                #     "event_id": event_id,
-                #     "user_id": request.user.id,
-                #     "name": name,
-                #     "email": email,
-                #     "num_seats": num_seats,
-                #     "payment_status": 'completed' if event.get('price', 0) > 0 else 'pending'
-                # }
-                # booking_id = booking_collection.insert_one(booking_data).inserted_id
+                booking_data = {
+                    "event_id": event_id,
+                    "user_id": request.user.id,
+                    "name": name,
+                    "email": email,
+                    "num_seats": num_seats,
+                    "payment_status": 'completed' if event.get('price', 0) > 0 else 'pending'
+                }
+                booking_id = booking_collection.insert_one(booking_data).inserted_id
                 
                 # Rediriger vers la page de confirmation
                 return redirect('booking_confirmation', event_id=event_id, booking_id=booking_id)
@@ -379,6 +379,8 @@ def register_for_event(request, event_id):
     
     # Si ce n'est pas un POST, rediriger vers la page de détails
     return redirect('event_detail', event_id=event_id)
+
+
 
 # Page de confirmation de réservation
 @login_required
