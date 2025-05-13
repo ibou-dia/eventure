@@ -5,3 +5,5 @@ url ="mongodb+srv://charbeladonis54:Fz5swlWwnxsLidjm@clusterdjango.sseokfp.mongo
 client = pymongo.MongoClient(url)
 
 db=client['mongodbDjango']
+
+
