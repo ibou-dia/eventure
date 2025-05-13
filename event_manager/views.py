@@ -171,6 +171,36 @@ def event_detail(request, event_id):
     })
 
 @login_required
+def delete_event(request, event_id):
+    """Vue pour supprimer un événement existant"""
+    # Convertir l'ID en ObjectId si possible
+    mongo_id = try_convert_to_objectid(event_id)
+    
+    # Récupérer l'événement depuis la base de données
+    event = event_collection.find_one({"_id": mongo_id})
+    
+    # Vérifier si l'événement existe
+    if not event:
+        messages.error(request, "L'événement demandé n'existe pas.")
+        return redirect('profile')
+    
+    # Vérifier si l'utilisateur actuel est bien le créateur de l'événement
+    if 'creator_id' in event and str(event['creator_id']) != str(request.user['_id']):
+        messages.error(request, "Vous n'êtes pas autorisé à supprimer cet événement.")
+        return redirect('profile')
+    
+    if request.method == 'POST':
+        try:
+            # Supprimer l'événement de la base de données
+            event_collection.delete_one({"_id": mongo_id})
+            
+            messages.success(request, 'Événement supprimé avec succès!')
+        except Exception as e:
+            messages.error(request, f'Erreur lors de la suppression de l\'événement: {str(e)}')
+    
+    return redirect('profile')
+
+@login_required
 def edit_event(request, event_id):
     """Vue pour modifier un événement existant"""
     # Convertir l'ID en ObjectId si possible
