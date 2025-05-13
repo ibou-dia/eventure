@@ -60,9 +60,12 @@ def get_sample_events():
                     'price': 0.00,
                 },
             ]
+            # Trier les événements exemples par date
+            sample_events.sort(key=lambda x: x.get('date', datetime.max))
             return sample_events
-        # Si des événements existent déjà, les retourner
+        # Si des événements existent déjà, les retourner et les trier
         events = list(event_collection.find())
+        # Les événements réels seront triés dans la fonction home
         return events
     except Exception as e:
         # En cas d'erreur, retourner une liste vide
@@ -91,6 +94,9 @@ def home(request):
                 parsed_event['id'] = events.index(event) + 1
                 
             parsed_events.append(parsed_event)
+        
+        # Trier les événements par date (du plus proche au plus éloigné)
+        parsed_events.sort(key=lambda x: x.get('date', datetime.max))
     except Exception as e:
         # Fallback sur les événements statiques en cas d'erreur
         parsed_events = get_sample_events()
@@ -163,6 +169,112 @@ def event_detail(request, event_id):
         'event': event,
         'comments': comments
     })
+
+@login_required
+def delete_event(request, event_id):
+    """Vue pour supprimer un événement existant"""
+    # Convertir l'ID en ObjectId si possible
+    mongo_id = try_convert_to_objectid(event_id)
+    
+    # Récupérer l'événement depuis la base de données
+    event = event_collection.find_one({"_id": mongo_id})
+    
+    # Vérifier si l'événement existe
+    if not event:
+        messages.error(request, "L'événement demandé n'existe pas.")
+        return redirect('profile')
+    
+    # Vérifier si l'utilisateur actuel est bien le créateur de l'événement
+    if 'creator_id' in event and str(event['creator_id']) != str(request.user['_id']):
+        messages.error(request, "Vous n'êtes pas autorisé à supprimer cet événement.")
+        return redirect('profile')
+    
+    if request.method == 'POST':
+        try:
+            # Supprimer l'événement de la base de données
+            event_collection.delete_one({"_id": mongo_id})
+            
+            messages.success(request, 'Événement supprimé avec succès!')
+        except Exception as e:
+            messages.error(request, f'Erreur lors de la suppression de l\'événement: {str(e)}')
+    
+    return redirect('profile')
+
+@login_required
+def edit_event(request, event_id):
+    """Vue pour modifier un événement existant"""
+    # Convertir l'ID en ObjectId si possible
+    mongo_id = try_convert_to_objectid(event_id)
+    
+    # Récupérer l'événement depuis la base de données
+    event = event_collection.find_one({"_id": mongo_id})
+    
+    # Vérifier si l'événement existe
+    if not event:
+        messages.error(request, "L'événement demandé n'existe pas.")
+        return redirect('profile')
+    
+    # Vérifier si l'utilisateur actuel est bien le créateur de l'événement
+    if 'creator_id' in event and str(event['creator_id']) != str(request.session.get('user_id')):
+        messages.error(request, "Vous n'êtes pas autorisé à modifier cet événement.")
+        return redirect('profile')
+    
+    if request.method == 'POST':
+        # Récupérer les données du formulaire
+        title = request.POST.get('title')
+        description = request.POST.get('description')
+        date_str = request.POST.get('date')
+        location = request.POST.get('location')
+        type_event = request.POST.get('type')
+        total_seats = int(request.POST.get('total_seats', 0))
+        price = float(request.POST.get('price', 0))
+        
+        # Vérifier si une nouvelle image a été fournie
+        image_file = request.FILES.get('image')
+        image_base64 = None
+        
+        # Validation simplifiée
+        if not all([title, description, date_str, location, total_seats >= 0]):
+            messages.error(request, 'Veuillez remplir tous les champs correctement.')
+            return render(request, 'event_manager/edit_event.html', {'event': event})
+        
+        try:
+            # Conversion de la date au bon format
+            event_date = datetime.strptime(date_str, "%Y-%m-%dT%H:%M")
+            
+            # Préparation du document à mettre à jour
+            update_data = {
+                "title": title,
+                "type": type_event,
+                "description": description,
+                "date": event_date,
+                "location": location,
+                "total_seats": total_seats,
+                "price": price,
+            }
+            
+            # Si une nouvelle image a été fournie, la traiter
+            if image_file:
+                image_bytes = image_file.read()
+                image_base64 = base64.b64encode(image_bytes).decode('utf-8')
+                update_data['image'] = image_base64
+            
+            # Mettre à jour l'événement dans la base de données
+            event_collection.update_one({"_id": mongo_id}, {"$set": update_data})
+            
+            messages.success(request, 'Événement mis à jour avec succès!')
+            return redirect('profile')
+            
+        except Exception as e:
+            messages.error(request, f'Erreur lors de la mise à jour de l\'événement: {str(e)}')
+            return render(request, 'event_manager/edit_event.html', {'event': event})
+    
+    # Pour les requêtes GET, préparer l'événement pour l'affichage
+    # S'assurer que l'ID est disponible dans un format utilisable par les templates
+    if '_id' in event:
+        event['id'] = str(event['_id'])
+    
+    return render(request, 'event_manager/edit_event.html', {'event': event})
 
 @login_required
 def create_event(request):
@@ -442,7 +554,29 @@ def profile_view(request):
     user = request.user
     error = None
     success = None
+    
+    # Récupérer les événements créés par l'utilisateur
     filtered_events = list(event_collection.find({'creator_id': request.user['_id']}))
+    
+    # Traitement spécial pour les ObjectIds de MongoDB
+    processed_events = []
+    for event in filtered_events:
+        # Copier l'événement pour éviter de modifier l'original
+        processed_event = event.copy()
+        
+        # Convertir l'ObjectId en chaîne pour l'utiliser dans les templates
+        if '_id' in processed_event:
+            # Assurer que l'ID est une chaîne utilisable dans les URLs
+            processed_event['id'] = str(processed_event['_id'])
+        
+        # Si creator_id est un ObjectId, le convertir aussi
+        if 'creator_id' in processed_event and isinstance(processed_event['creator_id'], ObjectId):
+            processed_event['creator_id'] = str(processed_event['creator_id'])
+            
+        processed_events.append(processed_event)
+    
+    # Remplacer la liste originale par la liste traitée
+    filtered_events = processed_events
     
     if request.method == 'POST':
         # Déterminer quelle section du profil est mise à jour
