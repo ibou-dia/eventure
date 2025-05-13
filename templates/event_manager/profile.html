@@ -109,7 +109,11 @@
                                     </div>
                                 </div>
                                 <div class="event-actions">
-                                    <a href="#" class="btn btn-secondary"><i class="fas fa-edit"></i> Modifier</a>
+                                    {% if event.id %}
+                                    <a href="{% url 'edit_event' event.id %}" class="btn btn-secondary"><i class="fas fa-edit"></i> Modifier</a>
+                                    {% else %}
+                                    <button class="btn btn-secondary disabled"><i class="fas fa-edit"></i> Modifier</button>
+                                    {% endif %}
                                     <div class="event-likes">
                                         <span class="likes-count">{{ event.likes_count }}</span>
                                         <i class="fas fa-heart"></i>

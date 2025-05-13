@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Modifier l'événement | ÉvénementsCo{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/forms.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <h1 class="form-title">Modifier l'événement</h1>
+    
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <div class="form-content">
+        {% if event.id %}
+        <form method="post" action="{% url 'edit_event' event.id %}" enctype="multipart/form-data">
+        {% else %}
+        <form method="post" enctype="multipart/form-data">
+        {% endif %}
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="title">Titre de l'événement*</label>
+                <input type="text" name="title" id="title" placeholder="Ex: Concert de Jazz" required value="{{ event.title }}">
+            </div>
+            
+            <div class="form-group">
+                <label for="description">Description*</label>
+                <textarea name="description" id="description" rows="5" placeholder="Décrivez votre événement en détail..." required>{{ event.description }}</textarea>
+            </div>
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="date">Date et heure*</label>
+                    <input type="datetime-local" name="date" id="date" required value="{{ event.date|date:'Y-m-d' }}T{{ event.date|date:'H:i' }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="location">Lieu*</label>
+                    <input type="text" name="location" id="location" placeholder="Ex: Salle des fêtes, Paris" required value="{{ event.location }}">
+                </div>
+            </div>
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="total_seats">Nombre de places disponibles*</label>
+                    <input type="number" name="total_seats" id="total_seats" min="1" required value="{{ event.total_seats }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="price">Prix par personne (Fcfa)*</label>
+                    <input type="number" name="price" id="price" min="0" step="0.01" required value="{{ event.price }}">
+                    <small>Indiquez 0 pour un événement gratuit</small>
+                </div>
+                <div class="form-group">
+                    <label for="type">Type:</label>
+                    <select name="type" id="type">
+                      <option value="atelier" {% if event.type == 'atelier' %}selected{% endif %}>Atelier</option>
+                      <option value="concert" {% if event.type == 'concert' %}selected{% endif %}>Concert</option>
+                      <option value="conference" {% if event.type == 'conference' %}selected{% endif %}>Conférence</option>
+                      <option value="festival" {% if event.type == 'festival' %}selected{% endif %}>Festival</option>
+                      <option value="sport" {% if event.type == 'sport' %}selected{% endif %}>Sport</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                {% if event.image %}
+                <div class="current-image">
+                    <label>Image actuelle :</label>
+                    <img src="data:image/jpeg;base64,{{ event.image }}" alt="{{ event.title }}" style="max-width: 200px; max-height: 150px; margin: 10px 0;">
+                </div>
+                {% endif %}
+                
+                <label for="image">Nouvelle image (optionnel)</label>
+                <input type="file" name="image" id="image" accept="image/*">
+                <small>Laissez vide pour conserver l'image actuelle. Format recommandé: JPG ou PNG, max 2 MB</small>
+            </div>
+            
+            <div class="form-actions">
+                <a href="{% url 'profile' %}" class="btn btn-outline">Annuler</a>
+                <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Définir la date minimum à aujourd'hui
+    const dateInput = document.getElementById('date');
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    
+    const minDateTime = `${year}-${month}-${day}T${hours}:${minutes}`;
+    dateInput.setAttribute('min', minDateTime);
+</script>
+{% endblock %}
