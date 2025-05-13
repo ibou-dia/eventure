@@ -43,7 +43,7 @@
         <div class="event-info-container">
             <div class="event-image">
                 {% if event.image %}
-                <img src="{{ event.image.url }}" alt="{{ event.title }}">
+                <img src="data:image/png;base64,{{ event.image }}" alt="{{ event.title }}">
                 {% else %}
                 <img src="{% static 'images/default-event.jpg' %}" alt="{{ event.title }}">
                 {% endif %}

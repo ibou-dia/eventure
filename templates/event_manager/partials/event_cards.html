@@ -14,7 +14,7 @@
         </div>
         {% if forloop.counter == 1 or forloop.counter == 5 %}
         <div class="event-badge popular">Populaire</div>
-        {% elif forloop.counter == 2 or forloop.counter == 7 %}
+        {% elif event.remaining_seat == event.total_seats %}
         <div class="event-badge new">Nouveau</div>
         {% elif event.remaining_seats < 10 %}
         <div class="event-badge last-seats">Dernières places</div>
