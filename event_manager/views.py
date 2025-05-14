@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse, HttpResponseRedirect
 from django.urls import reverse
 from django.contrib import messages
-from .models import event_collection, user_collection, booking_collection, MongoUser
+from .models import event_collection, user_collection, booking_collection, comments_collection,MongoUser
 from datetime import datetime
 from django.db.models import Count
 from django.utils import timezone
@@ -117,58 +117,110 @@ def home(request):
         'page_obj': events_page,  # Pour la compatibilité avec les tags de pagination
     })
 
-def event_detail(request, event_id):
-    # En mode statique, on retrouve l'événement dans notre liste d'exemples
-    sample_events = get_sample_events()
-    if isinstance(sample_events, list):
-        # Mode données fictives
-        event = next((e for e in sample_events if e.get('id', sample_events.index(e) + 1) == event_id), None)
-        if not event:
-            # Si l'ID ne correspond pas, prendre le premier (pour démo uniquement)
-            event = sample_events[0]
-            event['id'] = event_id
-        # Simuler des commentaires
-        comments = [
-            {'user': 'Jean Dupont', 'content': 'Super événement !', 'created_at': timezone.now() - timezone.timedelta(days=1)},
-            {'user': 'Marie Martin', 'content': 'J\'ai hâte d\'y être !', 'created_at': timezone.now() - timezone.timedelta(hours=5)},
-        ]
-    else:
-        # Mode base de données MongoDB
-        try:
-            # Convertir l'ID en ObjectId si possible et récupérer l'événement
-            mongo_id = try_convert_to_objectid(event_id)
-            event = event_collection.find_one({"_id": mongo_id})
+# def event_detail(request, event_id):
+#     # En mode statique, on retrouve l'événement dans notre liste d'exemples
+#     sample_events = get_sample_events()
+#     if isinstance(sample_events, list):
+#         # Mode données fictives
+#         event = next((e for e in sample_events if e.get('id', sample_events.index(e) + 1) == event_id), None)
+#         if not event:
+#             # Si l'ID ne correspond pas, prendre le premier (pour démo uniquement)
+#             event = sample_events[0]
+#             event['id'] = event_id
+#         # Simuler des commentaires
+#         comments = [
+#             {'user': 'Jean Dupont', 'content': 'Super événement !', 'created_at': timezone.now() - timezone.timedelta(days=1)},
+#             {'user': 'Marie Martin', 'content': 'J\'ai hâte d\'y être !', 'created_at': timezone.now() - timezone.timedelta(hours=5)},
+#         ]
+#     else:
+#         # Mode base de données MongoDB
+#         try:
+#             # Convertir l'ID en ObjectId si possible et récupérer l'événement
+#             mongo_id = try_convert_to_objectid(event_id)
+#             event = event_collection.find_one({"_id": mongo_id})
                 
-            if not event:
-                # Si aucun événement n'est trouvé, utiliser un événement par défaut
-                event = sample_events[0] if sample_events else {}
-                event['id'] = event_id
-            else:
-                # Assurer que l'événement a une propriété 'id' pour les templates
-                # Si MongoDB utilise des ObjectId, convertir en string
-                if '_id' in event and 'id' not in event:
-                    event['id'] = str(event['_id'])
-            # Pour l'instant, simuler des commentaires
-            comments = []
-        except Exception as e:
-            print(f"Erreur lors de la récupération de l'événement {event_id}: {e}")
-            # En cas d'erreur, utiliser un événement par défaut
-            event = sample_events[0] if sample_events else {
-                'title': 'Événement non trouvé',
-                'description': 'Désolé, l\'événement que vous recherchez n\'existe pas ou a été supprimé.',
-                'date': timezone.now(),
-                'location': 'Non disponible',
-                'total_seats': 0,
-                'remaining_seats': 0,
-                'price': 0.00,
-                'id': event_id
-            }
-            comments = []
+#             if not event:
+#                 # Si aucun événement n'est trouvé, utiliser un événement par défaut
+#                 event = sample_events[0] if sample_events else {}
+#                 event['id'] = event_id
+#             else:
+#                 # Assurer que l'événement a une propriété 'id' pour les templates
+#                 # Si MongoDB utilise des ObjectId, convertir en string
+#                 if '_id' in event and 'id' not in event:
+#                     event['id'] = str(event['_id'])
+#             # Pour l'instant, simuler des commentaires
+#             comments = []
+#         except Exception as e:
+#             print(f"Erreur lors de la récupération de l'événement {event_id}: {e}")
+#             # En cas d'erreur, utiliser un événement par défaut
+#             event = sample_events[0] if sample_events else {
+#                 'title': 'Événement non trouvé',
+#                 'description': 'Désolé, l\'événement que vous recherchez n\'existe pas ou a été supprimé.',
+#                 'date': timezone.now(),
+#                 'location': 'Non disponible',
+#                 'total_seats': 0,
+#                 'remaining_seats': 0,
+#                 'price': 0.00,
+#                 'id': event_id
+#             }
+#             comments = []
     
-    return render(request, 'event_manager/event_detail.html', {
+#     return render(request, 'event_manager/event_detail.html', {
+#         'event': event,
+#         'comments': comments
+#     })
+
+def event_detail(request, event_id):
+    # Convertir l'event_id en ObjectId si ce n'est pas déjà fait
+    if not isinstance(event_id, ObjectId):
+        try:
+            event_id_obj = ObjectId(event_id)
+        except:
+            # Gérer le cas où l'ID n'est pas un ObjectId valide
+            messages.error(request, "ID d'événement invalide.")
+            return redirect('events_list')  # Rediriger vers une page appropriée
+    else:
+        event_id_obj = event_id
+    
+    # Récupérer l'événement
+    event = event_collection.find_one({"_id": event_id_obj})
+    if not event:
+        messages.error(request, "Cet événement n'existe pas.")
+        return redirect('events_list')  # Rediriger vers une page appropriée
+    
+    # Convertir l'ObjectId en chaîne pour les URLs
+    event['id'] = str(event['_id'])
+    
+    # Récupérer les commentaires associés à cet événement, triés par date décroissante
+    comments = list(comments_collection.find({"event_id": event_id}).sort("created_at", -1))
+    
+    # Pour chaque commentaire, convertir l'ObjectId en chaîne
+    for comment in comments:
+        comment['id'] = str(comment['_id'])
+    
+    
+
+
+    user_has_liked = False
+    if request.user.get('is_authenticated'):
+        # Déterminer l'ID utilisateur en fonction du type d'objet user
+        if isinstance(request.user, dict):
+            user_id = str(request.user.get('_id'))
+        else:
+            user_id = str(request.user.id)
+            
+        likes = event.get('likes', [])
+        user_has_liked = any(like.get('user_id') == user_id for like in likes)
+    
+    context = {
         'event': event,
-        'comments': comments
-    })
+        'comments': comments,
+        'user_has_liked': user_has_liked,
+        # Autres éléments du contexte
+    }
+    
+    return render(request, 'event_manager/event_detail.html', context)
+
 
 @login_required
 def delete_event(request, event_id):
@@ -433,29 +485,147 @@ def booking_confirmation(request, event_id, booking_id):
         return redirect('home')
 
 # Gestion des commentaires
+# @login_required
+# def add_comment(request, event_id):
+#     if request.method == 'POST':
+#         content = request.POST.get('content')
+        
+#         if not content:
+#             messages.error(request, 'Le commentaire ne peut pas être vide.')
+#         else:
+#             # En mode statique, simuler l'ajout d'un commentaire réussi
+#             messages.success(request, 'Commentaire ajouté avec succès!')
+        
+#         return redirect('event_detail', event_id=event_id)
+    
+#     return redirect('event_detail', event_id=event_id)
+
+
 @login_required
 def add_comment(request, event_id):
+    # Convertir l'event_id en ObjectId si ce n'est pas déjà fait
+    if not isinstance(event_id, ObjectId):
+        try:
+            event_id_obj = ObjectId(event_id)
+        except:
+            # Gérer le cas où l'ID n'est pas un ObjectId valide
+            messages.error(request, "ID d'événement invalide.")
+            return redirect('events_list')  # Rediriger vers une page appropriée
+    else:
+        event_id_obj = event_id
+    
+    # Vérifier que l'événement existe
+    event = event_collection.find_one({"_id": event_id_obj})
+    if not event:
+        messages.error(request, "Cet événement n'existe pas.")
+        return redirect('events_list')  # Rediriger vers une page appropriée
+    
     if request.method == 'POST':
         content = request.POST.get('content')
         
         if not content:
             messages.error(request, 'Le commentaire ne peut pas être vide.')
-        else:
-            # En mode statique, simuler l'ajout d'un commentaire réussi
+            return redirect('event_detail', event_id=event_id)
+        
+        # Créer un nouveau document de commentaire
+        comment = {
+            "event_id": event_id,  # Garder l'ID comme chaîne pour faciliter les requêtes
+            "user": request.user.get('username'),  # ou request.user.id selon votre système d'authentification
+            "content": content,
+            "created_at": datetime.now()
+        }
+        
+        # Insérer le commentaire dans la collection
+        result = comments_collection.insert_one(comment)
+        
+        if result.inserted_id:
             messages.success(request, 'Commentaire ajouté avec succès!')
+        else:
+            messages.error(request, "Erreur lors de l'ajout du commentaire.")
         
         return redirect('event_detail', event_id=event_id)
     
     return redirect('event_detail', event_id=event_id)
 
+
+
+
 # Gestion des likes
+# @login_required
+# def like_event(request, event_id):
+#     # En mode statique, simuler un like réussi
+#     if request.is_ajax():
+#         return JsonResponse({'status': 'success', 'likes_count': 10})
+#     else:
+#         return redirect('event_detail', event_id=event_id)
+
 @login_required
 def like_event(request, event_id):
-    # En mode statique, simuler un like réussi
-    if request.is_ajax():
-        return JsonResponse({'status': 'success', 'likes_count': 10})
+    # Conversion de l'ID de l'événement en ObjectId
+    event_id = ObjectId(event_id)
+    
+    # Récupérer l'ID et le nom d'utilisateur (en tenant compte que request.user est un dict)
+    if isinstance(request.user, dict):
+        user_id = str(request.user.get('_id'))
+        username = request.user.get('username')
+    else:
+        # Si c'est un objet User Django standard
+        user_id = str(request.user.id)
+        username = request.user.username
+    
+    
+    # Récupérer l'événement
+    event = event_collection.find_one({"_id": event_id})
+    
+    # Initialiser la liste des likes si elle n'existe pas
+    if not event.get('likes'):
+        event_collection.update_one(
+            {"_id": event_id},
+            {"$set": {"likes": []}}
+        )
+        event['likes'] = []
+    
+    # Vérifier si l'utilisateur a déjà liké
+    user_like = next((like for like in event.get('likes', []) 
+                    if like.get('user_id') == user_id), None)
+                    
+    # Toggle like (ajouter ou supprimer)
+    if user_like:
+        # Supprimer le like
+        event_collection.update_one(
+            {"_id": event_id},
+            {"$pull": {"likes": {"user_id": user_id}}}
+        )
+        action = 'unliked'
+    else:
+        # Ajouter le like
+        like_data = {
+            "user_id": user_id,
+            "username": username,
+            "timestamp": datetime.now()
+        }
+        event_collection.update_one(
+            {"_id": event_id},
+            {"$push": {"likes": like_data}}
+        )
+        action = 'liked'
+    
+    # Récupérer le nombre de likes mis à jour
+    updated_event = event_collection.find_one({"_id": event_id})
+    likes_count = len(updated_event.get('likes', []))
+    
+    # Répondre en fonction du type de requête
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':  # Méthode plus moderne que is_ajax()
+        return JsonResponse({
+            'status': 'success', 
+            'action': action,
+            'likes_count': likes_count
+        })
     else:
         return redirect('event_detail', event_id=event_id)
+
+
+
 
 # Pages d'authentification
 def login_view(request):

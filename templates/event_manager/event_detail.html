@@ -143,28 +143,76 @@
 {% block extra_js %}
 <script>
     // Simulation du bouton like
-    document.querySelector('.like-btn').addEventListener('click', function() {
-        const eventId = this.dataset.eventId;
-        const icon = this.querySelector('i');
-        const likesCount = this.querySelector('.likes-count');
+    // document.querySelector('.like-btn').addEventListener('click', function() {
+    //     const eventId = this.dataset.eventId;
+    //     const icon = this.querySelector('i');
+    //     const likesCount = this.querySelector('.likes-count');
         
-        // Simuler l'alternance de l'icône de like
-        if (icon.classList.contains('far')) {
-            icon.classList.remove('far');
-            icon.classList.add('fas');
-            icon.classList.add('liked');
-            likesCount.textContent = parseInt(likesCount.textContent) + 1;
-        } else {
-            icon.classList.remove('fas');
-            icon.classList.remove('liked');
-            icon.classList.add('far');
-            likesCount.textContent = parseInt(likesCount.textContent) - 1;
-        }
+    //     // Simuler l'alternance de l'icône de like
+    //     if (icon.classList.contains('far')) {
+    //         icon.classList.remove('far');
+    //         icon.classList.add('fas');
+    //         icon.classList.add('liked');
+    //         likesCount.textContent = parseInt(likesCount.textContent) + 1;
+    //     } else {
+    //         icon.classList.remove('fas');
+    //         icon.classList.remove('liked');
+    //         icon.classList.add('far');
+    //         likesCount.textContent = parseInt(likesCount.textContent) - 1;
+    //     }
         
-        // En production, ceci serait un appel AJAX au backend
-        console.log(`Like toggled for event ${eventId}`);
-    });
+    //     // En production, ceci serait un appel AJAX au backend
+    //     console.log(`Like toggled for event ${eventId}`);
+    // }); 
     
+    // Supposons que vous avez des boutons like avec la classe 'like-button'
+    document.querySelectorAll('.like-btn').forEach(button => {
+        button.addEventListener('click', function(event) {
+            event.preventDefault();
+            
+            const eventId = this.dataset.eventId;
+            const likeUrl = `/event/${eventId}/like/`;
+            const likeCountElement = document.getElementById(`like-count-${eventId}`);
+            const likeIcon = this.querySelector('.like-icon');
+            
+            // Envoi de la requête AJAX
+            fetch(likeUrl, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': getCsrfToken() // Fonction pour obtenir le token CSRF
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Mettre à jour le compteur de likes
+                    likeCountElement.textContent = data.likes_count;
+                    
+                    // Modifier l'apparence du cœur
+                    if (data.action === 'liked') {
+                        likeIcon.classList.add('active');
+                    } else {
+                        likeIcon.classList.remove('active');
+                    }
+                }
+            })
+            .catch(error => console.error('Erreur:', error));
+        });
+    });
+
+    // Fonction pour obtenir le token CSRF
+    function getCsrfToken() {
+        return document.querySelector('[name=csrfmiddlewaretoken]').value;
+    }
+
+
+
+
+
+
+
+
     // Validation du formulaire de réservation
     document.querySelector('.ticket-box form').addEventListener('submit', function(e) {
         const numSeats = parseInt(document.getElementById('num_seats').value);
