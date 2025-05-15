@@ -246,7 +246,7 @@
 .search-filter-form {
     display: flex;
     flex-direction: row;
-    justify-content: space-between;
+    justify-content: space-around;
     align-items: center;
     flex-wrap: nowrap;
     width: 100%;
@@ -254,11 +254,11 @@
 }
 
 .search-bar-container {
-    flex: 0 0 65%;
+    flex: 0 0 60%;
 }
 
 .filter-options-container {
-    flex: 0 0 35%;
+    flex: 0 0 40%;
 }
 
 .events-filter:hover {
