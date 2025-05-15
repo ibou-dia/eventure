@@ -8,6 +8,7 @@
 {% endblock %}
 
 {% block content %}
+
 <div class="event-detail-container">
     <div class="event-header">
         <div class="event-header-content">
@@ -34,8 +35,8 @@
         <div class="event-actions">
             <button class="like-btn" data-event-id="{{ event.id }}">
                 <i class="far fa-heart"></i>
-                <span class="likes-count">{{ event.likes_count|default:0 }}</span>
             </button>
+            <span class="likes-count">{{ event.likes_count|default:0 }}</span>
         </div>
     </div>
 
@@ -142,74 +143,89 @@
 
 {% block extra_js %}
 <script>
-    // Simulation du bouton like
-    // document.querySelector('.like-btn').addEventListener('click', function() {
-    //     const eventId = this.dataset.eventId;
-    //     const icon = this.querySelector('i');
-    //     const likesCount = this.querySelector('.likes-count');
-        
-    //     // Simuler l'alternance de l'icône de like
-    //     if (icon.classList.contains('far')) {
-    //         icon.classList.remove('far');
-    //         icon.classList.add('fas');
-    //         icon.classList.add('liked');
-    //         likesCount.textContent = parseInt(likesCount.textContent) + 1;
-    //     } else {
-    //         icon.classList.remove('fas');
-    //         icon.classList.remove('liked');
-    //         icon.classList.add('far');
-    //         likesCount.textContent = parseInt(likesCount.textContent) - 1;
-    //     }
-        
-    //     // En production, ceci serait un appel AJAX au backend
-    //     console.log(`Like toggled for event ${eventId}`);
-    // }); 
+    // Code pour gérer les likes (simulé pour le frontend)
+    // function initLikeButtons() {
+    //     document.querySelectorAll('.like-btn').forEach(button => {
+    //         button.addEventListener('click', function() {
+    //             const eventId = this.dataset.eventId;
+    //             const icon = this.querySelector('i');
+    //             const likesCount = this.parentElement.querySelector('.likes-count');
+
+    //             // Simuler l'alternance de l'icône de like
+    //             if (icon.classList.contains('far')) {
+    //                 icon.classList.remove('far');
+    //                 icon.classList.add('fas');
+    //                 icon.classList.add('liked');
+    //                 likesCount.textContent = parseInt(likesCount.textContent) + 1;
+    //             } else {
+    //                 icon.classList.remove('fas');
+    //                 icon.classList.remove('liked');
+    //                 icon.classList.add('far');
+    //                 likesCount.textContent = parseInt(likesCount.textContent) - 1;
+    //             }
+
+    //             // En production, ceci serait un appel AJAX au backend
+    //             console.log(`Like toggled for event ${eventId}`);
+    //         });
+    //     });
+    // }
     
-    // Supposons que vous avez des boutons like avec la classe 'like-button'
-    document.querySelectorAll('.like-btn').forEach(button => {
-        button.addEventListener('click', function(event) {
-            event.preventDefault();
-            
-            const eventId = this.dataset.eventId;
-            const likeUrl = `/event/${eventId}/like/`;
-            const likeCountElement = document.getElementById(`like-count-${eventId}`);
-            const likeIcon = this.querySelector('.like-icon');
-            
-            // Envoi de la requête AJAX
-            fetch(likeUrl, {
-                method: 'POST',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRFToken': getCsrfToken() // Fonction pour obtenir le token CSRF
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    // Mettre à jour le compteur de likes
-                    likeCountElement.textContent = data.likes_count;
-                    
-                    // Modifier l'apparence du cœur
-                    if (data.action === 'liked') {
-                        likeIcon.classList.add('active');
-                    } else {
-                        likeIcon.classList.remove('active');
+    // // Initialiser les boutons de like au chargement initial
+    // initLikeButtons();
+
+
+document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.like-btn').forEach(button => {
+            button.addEventListener('click', function () {
+                const eventId = this.dataset.eventId;
+                const icon = this.querySelector('i');
+                const likesCountElem = this.parentElement.querySelector('.likes-count');
+
+                fetch(`/events/${eventId}/like/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken'),
+                    },
+                    body: JSON.stringify({})
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        if (data.action === 'liked') {
+                            icon.classList.remove('far');
+                            icon.classList.add('fas', 'liked');
+                        } else {
+                            icon.classList.remove('fas', 'liked');
+                            icon.classList.add('far');
+                        }
+                        likesCountElem.textContent = data.likes_count;
+                    }
+                })
+                .catch(error => console.error('Erreur lors du like:', error));
+            });
+        });
+
+        // Fonction pour lire le token CSRF depuis les cookies
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
                     }
                 }
-            })
-            .catch(error => console.error('Erreur:', error));
-        });
+            }
+            return cookieValue;
+        }
     });
 
-    // Fonction pour obtenir le token CSRF
-    function getCsrfToken() {
-        return document.querySelector('[name=csrfmiddlewaretoken]').value;
-    }
 
-
-
-
-
+    
 
 
 

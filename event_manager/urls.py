@@ -7,7 +7,7 @@ urlpatterns = [
     path('register/', views.register_view, name='register'),
     path('logout/', views.logout_view, name='logout'),
     path('profile/', views.profile_view, name='profile'),
-    path('payment/<str:event_id>/', views.pay_view, name='payment'),
+    path('payment/<str:event_id>/', views.payment, name='payment'),
 
     path('event/create/', views.create_event, name='create_event'),
     path('event/<str:event_id>/edit/', views.edit_event, name='edit_event'),
@@ -18,4 +18,5 @@ urlpatterns = [
     path('event/<str:event_id>/like/', views.like_event, name='like_event'),
     path('booking/<str:event_id>/<str:booking_id>/confirmation/', views.booking_confirmation, name='booking_confirmation'),
     path('api/events/', views.events_paginated_api, name='events_paginated_api'),
+
 ]
