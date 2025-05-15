@@ -42,55 +42,107 @@
     </div>
 
     <div class="events-filter">
-        <div class="search-bar">
-            <i class="fas fa-search search-icon"></i>
-            <input type="text" placeholder="Rechercher un événement..." id="search-input" autocomplete="off">
-            <button type="submit"><i class="fas fa-arrow-right"></i> Rechercher</button>
-        </div>
-        <div class="filter-options">
-            <div class="filter-group">
-                <i class="fas fa-tag"></i>
-                <select id="type-filter">
-                    <option value="">Tous les types</option>
-                    <option value="concert">Concerts</option>
-                    <option value="festival">Festivals</option>
-                    <option value="conference">Conférences</option>
-                    <option value="workshop">Ateliers</option>
-                    <option value="sport">Sports</option>
-                </select>
+        <form id="events-search-form" method="get" action="{% url 'home' %}" class="search-filter-form">
+            <div class="search-bar-container">
+                <div class="search-bar">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" name="search" placeholder="Rechercher un événement..." id="search-input" value="{{ request.GET.search|default:'' }}" autocomplete="off">
+                    <button type="submit"><i class="fas fa-arrow-right"></i> Rechercher</button>
+                </div>
             </div>
-            <div class="filter-group">
-                <i class="fas fa-calendar-alt"></i>
-                <select id="date-filter">
-                    <option value="">Toutes les dates</option>
-                    <option value="today">Aujourd'hui</option>
-                    <option value="tomorrow">Demain</option>
-                    <option value="week">Cette semaine</option>
-                    <option value="weekend">Ce weekend</option>
-                    <option value="month">Ce mois-ci</option>
-                </select>
+
+            <div class="filter-options-container">
+                <div class="filter-options">
+                    <div class="filter-group">
+                        <i class="fas fa-tag"></i>
+                        <select id="type-filter" name="type" onchange="this.form.submit()">
+                            <option value="" {% if not request.GET.type %}selected{% endif %}>Tous les types</option>
+                            <option value="concert" {% if request.GET.type == 'concert' %}selected{% endif %}>Concerts</option>
+                            <option value="festival" {% if request.GET.type == 'festival' %}selected{% endif %}>Festivals</option>
+                            <option value="conference" {% if request.GET.type == 'conference' %}selected{% endif %}>Conférences</option>
+                            <option value="atelier" {% if request.GET.type == 'atelier' %}selected{% endif %}>Ateliers</option>
+                            <option value="sport" {% if request.GET.type == 'sport' %}selected{% endif %}>Sports</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <i class="fas fa-calendar-alt"></i>
+                        <select id="date-filter" name="date" onchange="this.form.submit()">
+                            <option value="" {% if not request.GET.date %}selected{% endif %}>Toutes les dates</option>
+                            <option value="today" {% if request.GET.date == 'today' %}selected{% endif %}>Aujourd'hui</option>
+                            <option value="tomorrow" {% if request.GET.date == 'tomorrow' %}selected{% endif %}>Demain</option>
+                            <option value="week" {% if request.GET.date == 'week' %}selected{% endif %}>Cette semaine</option>
+                            <option value="weekend" {% if request.GET.date == 'weekend' %}selected{% endif %}>Ce weekend</option>
+                            <option value="month" {% if request.GET.date == 'month' %}selected{% endif %}>Ce mois-ci</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <select id="city-filter" name="city" onchange="this.form.submit()">
+                            <option value="" {% if not request.GET.city %}selected{% endif %}>Toutes les villes</option>
+                            <option value="dakar" {% if request.GET.city == 'dakar' %}selected{% endif %}>Dakar</option>
+                            <option value="thies" {% if request.GET.city == 'thies' %}selected{% endif %}>Thies</option>
+                            <option value="saint-louis" {% if request.GET.city == 'saint-louis' %}selected{% endif %}>Saint-Louis</option>
+                            <option value="mbour" {% if request.GET.city == 'mbour' %}selected{% endif %}>Mbour</option>
+                            <option value="ziguinchor" {% if request.GET.city == 'ziguinchor' %}selected{% endif %}>Ziguinchor</option>
+                        </select>
+                    </div>
+                </div>
             </div>
-            <div class="filter-group">
-                <i class="fas fa-map-marker-alt"></i>
-                <select id="city-filter">
-                    <option value="">Toutes les villes</option>
-                    <option value="paris">Paris</option>
-                    <option value="lyon">Lyon</option>
-                    <option value="marseille">Marseille</option>
-                    <option value="bordeaux">Bordeaux</option>
-                    <option value="lille">Lille</option>
-                </select>
-            </div>
-        </div>
+        </form>
     </div>
 
     <!-- Tags de filtres actifs -->
     <div class="filter-tags-container">
         <div class="filter-tags">
-            <div class="filter-tag active">Tous <i class="fas fa-times"></i></div>
-            <div class="filter-tag">Cette semaine <i class="fas fa-times"></i></div>
-            <div class="filter-tag">Concerts <i class="fas fa-times"></i></div>
-            <div class="filter-tag">Paris <i class="fas fa-times"></i></div>
+            {% if request.GET.search or request.GET.type or request.GET.date or request.GET.city %}
+                <!-- Tag de recherche -->
+                {% if request.GET.search %}
+                <a href="{% url 'home' %}?{% for key, value in request.GET.items %}{% if key != 'search' %}{{ key }}={{ value }}&{% endif %}{% endfor %}" class="filter-tag">
+                    Recherche: {{ request.GET.search }} <i class="fas fa-times"></i>
+                </a>
+                {% endif %}
+                
+                <!-- Tag de type -->
+                {% if request.GET.type %}
+                <a href="{% url 'home' %}?{% for key, value in request.GET.items %}{% if key != 'type' %}{{ key }}={{ value }}&{% endif %}{% endfor %}" class="filter-tag">
+                    {% if request.GET.type == 'concert' %}Concerts{% endif %}
+                    {% if request.GET.type == 'festival' %}Festivals{% endif %}
+                    {% if request.GET.type == 'conference' %}Conférences{% endif %}
+                    {% if request.GET.type == 'atelier' %}Ateliers{% endif %}
+                    {% if request.GET.type == 'sport' %}Sports{% endif %}
+                    <i class="fas fa-times"></i>
+                </a>
+                {% endif %}
+                
+                <!-- Tag de date -->
+                {% if request.GET.date %}
+                <a href="{% url 'home' %}?{% for key, value in request.GET.items %}{% if key != 'date' %}{{ key }}={{ value }}&{% endif %}{% endfor %}" class="filter-tag">
+                    {% if request.GET.date == 'today' %}Aujourd'hui{% endif %}
+                    {% if request.GET.date == 'tomorrow' %}Demain{% endif %}
+                    {% if request.GET.date == 'week' %}Cette semaine{% endif %}
+                    {% if request.GET.date == 'weekend' %}Ce weekend{% endif %}
+                    {% if request.GET.date == 'month' %}Ce mois-ci{% endif %}
+                    <i class="fas fa-times"></i>
+                </a>
+                {% endif %}
+                
+                <!-- Tag de ville -->
+                {% if request.GET.city %}
+                <a href="{% url 'home' %}?{% for key, value in request.GET.items %}{% if key != 'city' %}{{ key }}={{ value }}&{% endif %}{% endfor %}" class="filter-tag">
+                    {% if request.GET.city == 'dakar' %}Dakar{% endif %}
+                    {% if request.GET.city == 'thies' %}Thies{% endif %}
+                    {% if request.GET.city == 'saint-louis' %}Saint-Louis{% endif %}
+                    {% if request.GET.city == 'mbour' %}Mbour{% endif %}
+                    {% if request.GET.city == 'ziguinchor' %}Ziguinchor{% endif %}
+                    <i class="fas fa-times"></i>
+                </a>
+                {% endif %}
+                
+                <!-- Tag pour tout réinitialiser -->
+                <a href="{% url 'home' %}" class="filter-tag active">
+                    Réinitialiser les filtres <i class="fas fa-times"></i>
+                </a>
+            {% endif %}
         </div>
     </div>
 
@@ -206,6 +258,14 @@
     // Initialiser les boutons de like au chargement initial
     initLikeButtons();
     
+    // Gestion du bouton de réinitialisation des filtres
+    const resetButton = document.getElementById('reset-filters');
+    if (resetButton) {
+        resetButton.addEventListener('click', function() {
+            window.location.href = '{% url "home" %}';
+        });
+    }
+    
     // AJAX Pagination
     document.addEventListener('DOMContentLoaded', function() {
         // Gestion des clics sur les liens de pagination
@@ -235,8 +295,18 @@
             
             eventsContainer.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Chargement...</div>';
             
+            // Récupérer tous les paramètres de recherche et filtrage actuels
+            const urlParams = new URLSearchParams(window.location.search);
+            const search = urlParams.get('search') || '';
+            const type = urlParams.get('type') || '';
+            const date = urlParams.get('date') || '';
+            const city = urlParams.get('city') || '';
+            
+            // Construire l'URL avec tous les paramètres
+            const apiUrl = `/api/events/?page=${page}&search=${encodeURIComponent(search)}&type=${encodeURIComponent(type)}&date=${encodeURIComponent(date)}&city=${encodeURIComponent(city)}`;
+            
             // Faire la requête AJAX
-            fetch(`/api/events/?page=${page}`)
+            fetch(apiUrl)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {

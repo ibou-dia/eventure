@@ -5,6 +5,7 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/event-detail.css' %}">
+<link rel="stylesheet" href="{% static 'css/forms.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -28,7 +29,7 @@
                 </div>
                 <div class="event-meta-item">
                     <i class="fas fa-ticket-alt"></i>
-                    <span>{{ event.remaining_seats }} places restantes</span>
+                    <span>{{ event.remaining_seat }} places restantes</span>
                 </div>
             </div>
         </div>
@@ -119,9 +120,9 @@
                 <div class="comment-header">
                     <div class="comment-author">
                         {% if comment.user.profile_image %}
-                        <img src="{{ comment.user.profile_image.url }}" alt="{{ comment.user }}">
+                        <img src="{{ comment.user.profile_image }}" alt="{{ comment.user }}" class="comment-avatar">
                         {% else %}
-                        <img src="{% static 'images/default-avatar.png' %}" alt="{{ comment.user }}">
+                        <img src="https://ui-avatars.com/api/?name={{ comment.user.first_name|default:comment.user }}&background=random&rounded=true" alt="{{ comment.user }}" class="comment-avatar">
                         {% endif %}
                         <span>{{ comment.user }}</span>
                     </div>

@@ -232,20 +232,33 @@
 }
 
 .events-filter {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 30px;
-    flex-wrap: wrap;
-    gap: 20px;
     background-color: white;
     padding: 20px;
     border-radius: var(--border-radius);
     box-shadow: var(--box-shadow);
     margin-left: 20px;
     margin-right: 20px;
+    margin-bottom: 30px;
     transition: all 0.3s ease;
     border: 1px solid transparent;
+}
+
+.search-filter-form {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    flex-wrap: nowrap;
+    width: 100%;
+    gap: 10px;
+}
+
+.search-bar-container {
+    flex: 0 0 60%;
+}
+
+.filter-options-container {
+    flex: 0 0 40%;
 }
 
 .events-filter:hover {
@@ -258,7 +271,8 @@
     display: flex;
     position: relative;
     flex: 1;
-    min-width: 350px;
+    min-width: 300px;
+    max-width: 95%;
     align-items: center;
     background-color: var(--background-color);
     border-radius: 30px;
@@ -341,10 +355,12 @@
 
 .filter-options {
     display: flex;
-    gap: 15px;
-    flex-wrap: wrap;
+    gap: 5px;
+    flex-wrap: nowrap;
     align-items: center;
+    justify-content: space-between;
     transition: all 0.3s ease;
+    width: 100%;
 }
 
 .filter-group {
@@ -371,24 +387,28 @@
 }
 
 .filter-group select {
-    padding-left: 38px;
-    min-width: 160px;
+    padding-left: 30px;
+    min-width: 120px;
+    max-width: 150px;
     appearance: none;
     background-color: var(--background-color);
     border: none;
     border-radius: 30px;
-    padding: 12px 40px 12px 38px;
+    padding: 10px 25px 10px 30px;
     cursor: pointer;
     outline: none;
     transition: all 0.3s;
-    font-size: 14px;
+    font-size: 13px;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%235d4adb' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
-    background-position: calc(100% - 15px) center;
-    background-size: 14px;
-    height: 46px;
+    background-position: calc(100% - 10px) center;
+    background-size: 12px;
+    height: 42px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05) inset;
     font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .filter-group select:focus {
