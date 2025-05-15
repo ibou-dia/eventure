@@ -74,10 +74,67 @@ def get_sample_events():
 
 # Vues principales
 def home(request):
+    # Récupérer les paramètres de recherche et de filtre
+    search_query = request.GET.get('search', '')
+    type_filter = request.GET.get('type', '')
+    date_filter = request.GET.get('date', '')
+    city_filter = request.GET.get('city', '')
+    
     # Récupérer les événements (mode statique ou base de données)
     try:
-        events = list(event_collection.find())
+        # Construction du filtre MongoDB
+        filter_query = {}
+        
+        # Appliquer le filtre de recherche (sur le titre ou la description)
+        if search_query:
+            filter_query['$or'] = [
+                {'title': {'$regex': search_query, '$options': 'i'}},
+                {'description': {'$regex': search_query, '$options': 'i'}}
+            ]
+        
+        # Appliquer le filtre de type
+        if type_filter:
+            filter_query['type'] = {'$regex': type_filter, '$options': 'i'}
+        
+        # Appliquer le filtre de ville
+        if city_filter:
+            filter_query['location'] = {'$regex': city_filter, '$options': 'i'}
+        
+        # Appliquer le filtre de date
+        now = datetime.now()
+        if date_filter == 'today':
+            today_start = datetime(now.year, now.month, now.day)
+            today_end = datetime(now.year, now.month, now.day, 23, 59, 59)
+            filter_query['date'] = {'$gte': today_start, '$lte': today_end}
+        elif date_filter == 'tomorrow':
+            tomorrow = now + timezone.timedelta(days=1)
+            tomorrow_start = datetime(tomorrow.year, tomorrow.month, tomorrow.day)
+            tomorrow_end = datetime(tomorrow.year, tomorrow.month, tomorrow.day, 23, 59, 59)
+            filter_query['date'] = {'$gte': tomorrow_start, '$lte': tomorrow_end}
+        elif date_filter == 'week':
+            week_start = now
+            week_end = now + timezone.timedelta(days=7)
+            filter_query['date'] = {'$gte': week_start, '$lte': week_end}
+        elif date_filter == 'weekend':
+            # Trouver le prochain weekend
+            days_until_saturday = (5 - now.weekday()) % 7
+            next_saturday = now + timezone.timedelta(days=days_until_saturday)
+            next_sunday = next_saturday + timezone.timedelta(days=1)
+            weekend_start = datetime(next_saturday.year, next_saturday.month, next_saturday.day)
+            weekend_end = datetime(next_sunday.year, next_sunday.month, next_sunday.day, 23, 59, 59)
+            filter_query['date'] = {'$gte': weekend_start, '$lte': weekend_end}
+        elif date_filter == 'month':
+            month_start = datetime(now.year, now.month, 1)
+            if now.month == 12:
+                next_month = datetime(now.year + 1, 1, 1)
+            else:
+                next_month = datetime(now.year, now.month + 1, 1)
+            filter_query['date'] = {'$gte': month_start, '$lt': next_month}
+        
+        # Récupérer les événements filtrés
+        events = list(event_collection.find(filter_query))
         parsed_events = []
+        
         for event in events:
             parsed_event = event.copy()
             if isinstance(event.get("date"), str):
@@ -99,6 +156,7 @@ def home(request):
         parsed_events.sort(key=lambda x: x.get('date', datetime.max))
     except Exception as e:
         # Fallback sur les événements statiques en cas d'erreur
+        print(f"Erreur lors de la recherche d'événements: {e}")
         parsed_events = get_sample_events()
     
     # Pagination : 10 événements par page

@@ -118,9 +118,9 @@
                 <div class="comment-header">
                     <div class="comment-author">
                         {% if comment.user.profile_image %}
-                        <img src="{{ comment.user.profile_image.url }}" alt="{{ comment.user }}">
+                        <img src="{{ comment.user.profile_image }}" alt="{{ comment.user }}" class="comment-avatar">
                         {% else %}
-                        <img src="{% static 'images/default-avatar.png' %}" alt="{{ comment.user }}">
+                        <img src="https://ui-avatars.com/api/?name={{ comment.user.first_name|default:comment.user }}&background=random&rounded=true" alt="{{ comment.user }}" class="comment-avatar">
                         {% endif %}
                         <span>{{ comment.user }}</span>
                     </div>
