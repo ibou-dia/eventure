@@ -295,8 +295,18 @@
             
             eventsContainer.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Chargement...</div>';
             
+            // Récupérer tous les paramètres de recherche et filtrage actuels
+            const urlParams = new URLSearchParams(window.location.search);
+            const search = urlParams.get('search') || '';
+            const type = urlParams.get('type') || '';
+            const date = urlParams.get('date') || '';
+            const city = urlParams.get('city') || '';
+            
+            // Construire l'URL avec tous les paramètres
+            const apiUrl = `/api/events/?page=${page}&search=${encodeURIComponent(search)}&type=${encodeURIComponent(type)}&date=${encodeURIComponent(date)}&city=${encodeURIComponent(city)}`;
+            
             // Faire la requête AJAX
-            fetch(`/api/events/?page=${page}`)
+            fetch(apiUrl)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
