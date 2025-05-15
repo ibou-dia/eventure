@@ -5,6 +5,7 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/event-detail.css' %}">
+<link rel="stylesheet" href="{% static 'css/forms.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -27,7 +28,7 @@
                 </div>
                 <div class="event-meta-item">
                     <i class="fas fa-ticket-alt"></i>
-                    <span>{{ event.remaining_seats }} places restantes</span>
+                    <span>{{ event.remaining_seat }} places restantes</span>
                 </div>
             </div>
         </div>
