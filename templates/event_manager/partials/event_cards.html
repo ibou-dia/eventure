@@ -22,14 +22,18 @@
     </div>
     <div class="event-info">
         <div class="event-category">
-            {% if forloop.counter|divisibleby:3 %}
+            {% if event.type == 'concert' %}
             <i class="fas fa-microphone-alt"></i> Concert
-            {% elif forloop.counter|divisibleby:4 %}
-            <i class="fas fa-theater-masks"></i> Festival
-            {% elif forloop.counter|divisibleby:2 %}
-            <i class="fas fa-graduation-cap"></i> Conférence
+            {% elif event.type == 'festival' %}
+            <i class="fas fa-guitar"></i> Festival
+            {% elif event.type == 'conference' %}
+            <i class="fas fa-microphone"></i> Conférence
+            {% elif event.type == 'atelier' %}
+            <i class="fas fa-hands-helping"></i> Atelier
+            {% elif event.type == 'sport' %}
+            <i class="fas fa-running"></i> Sport
             {% else %}
-            <i class="fas fa-glass-cheers"></i> Soirée
+            <i class="fas fa-calendar-alt"></i> Événement
             {% endif %}
         </div>
         <h3 class="event-title">{{ event.title }}</h3>
