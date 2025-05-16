@@ -868,7 +868,7 @@ def register_for_event(request, event_id):
                 place_restante-=int(num_seats)
                 if place_restante >=0:
                     bookings = {
-                        "event_id": event_id,
+                        "event_id": ObjectId(event_id),
                         "user_id": request.user['_id'],
                         "name": name,
                         "email": email,
