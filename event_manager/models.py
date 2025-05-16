@@ -9,6 +9,8 @@ event_collection = db['Event']
 user_collection = db['User']
 booking_collection = db['Booking']
 comments_collection = db['comments']
+likes_collection = db['likes']
+
 
 # Classe utilitaire pour les utilisateurs MongoDB
 class MongoUser:
@@ -77,3 +79,4 @@ class MongoUser:
         )
         
         return result.modified_count > 0
+    

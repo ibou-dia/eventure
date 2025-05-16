@@ -143,8 +143,7 @@ input[type="file"]:hover {
 }
 
 /* Authentification */
-.auth-container,
-.pay-container {
+.auth-container {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -157,8 +156,7 @@ input[type="file"]:hover {
     background-attachment: fixed;
 }
 
-.auth-card,
-.pay-card {
+.auth-card {
     background-color: var(--card-color);
     border-radius: var(--border-radius);
     box-shadow: var(--box-shadow);
