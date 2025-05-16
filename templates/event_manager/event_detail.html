@@ -61,7 +61,7 @@
             <div class="ticket-box">
                 <h3>Réserver votre place</h3>
                 {% if event.price > 0 %}
-                <div class="price">{{ event.price }} € par personne</div>
+                <div class="price">{{ event.price }} F CFA par personne</div>
                 {% else %}
                 <div class="price free">Entrée gratuite</div>
                 {% endif %}
@@ -87,6 +87,9 @@
                             {% else %}
                             Réserver gratuitement
                             {% endif %}
+                        </button>
+                        <button type="submit" class="btn btn-primary btn-block btn2">
+                            Inviter un ami
                         </button>
                     </div>
                 </form>

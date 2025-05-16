@@ -56,14 +56,6 @@
                     <span class="label">Numéro de réservation</span>
                     <span class="value booking-id">{{ booking.reference_number|default:"EVT-2023-" }}{{ booking.id }}</span>
                 </div>
-                <div class="info-item total">
-                    <span class="label">Total</span>
-                    <span class="value">{{ total_price|floatformat:2 }} €</span>
-                </div>
-                <div class="info-item status {% if booking.payment_status == 'completed' %}paid{% endif %}">
-                    <span class="label">Statut</span>
-                    <span class="value">{{ booking.payment_status_display|default:"Payé" }}</span>
-                </div>
             </div>
         </div>
         

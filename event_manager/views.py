@@ -375,80 +375,6 @@ def create_event(request):
         
     return render(request, 'event_manager/create_event.html')
 
-
-# @login_required
-def register_for_event(request, event_id):
-    if request.method == "POST":
-        # Récupérer les données du formulaire
-        name = request.POST.get("name")
-        email = request.POST.get("email")
-        num_seats = request.POST.get("num_seats")
-
-        # Stocker temporairement en session
-        booking_data = {
-            "name": name,
-            "email": email,
-            "num_seats": num_seats
-        }
-
-        request.session['booking_data'] = booking_data
-        
-        return redirect('payment', event_id=event_id)
-
-    return redirect('event_detail', event_id=event_id)  # fallback
-
-
-# Page de confirmation de réservation
-@login_required
-def booking_confirmation(request, event_id, booking_id):
-    # En mode statique/démo, simuler une réservation et un événement
-    try:
-        # Tenter de récupérer l'événement depuis MongoDB
-        mongo_id = try_convert_to_objectid(event_id)
-        event = event_collection.find_one({"_id": mongo_id})
-        
-        # Pour le moment, nous simulons les réservations
-        booking = None  # Aucune collection de réservations pour l'instant
-
-        if not event or not booking:
-            # Simuler des données pour la démo
-            event = {
-                'title': 'Concert de Jazz',
-                'description': 'Une soirée exceptionnelle avec les meilleurs artistes de jazz.',
-                'date': timezone.now() + timezone.timedelta(days=10),
-                'location': 'Salle Pleyel, Paris',
-                'total_seats': 200,
-                'remaining_seats': 150,
-                'price': 25.00,
-            }
-            
-            booking = {
-                'id': booking_id,
-                'name': request.user.username if hasattr(request, 'user') else 'Jean Dupont',
-                'email': request.user.email if hasattr(request, 'user') else 'utilisateur@exemple.com',
-                'num_seats': 2,
-                'registration_date': timezone.now(),
-                'payment_status': 'completed',
-                'payment_status_display': 'Payé'
-            }
-        
-        # Calculer le prix total
-        if isinstance(event, dict):
-            total_price = event['price'] * booking['num_seats'] if 'price' in event and 'num_seats' in booking else 0
-        else:
-            total_price = event.price * booking.num_seats
-            
-        return render(request, 'event_manager/booking_confirmation.html', {
-            'event': event,
-            'booking': booking,
-            'total_price': total_price
-        })
-        
-    except Exception as e:
-        messages.error(request, f"Une erreur est survenue lors de l'affichage de la confirmation: {str(e)}")
-        return redirect('home')
-
-
 @login_required
 def add_comment(request, event_id):
     # Convertir l'event_id en ObjectId si ce n'est pas déjà fait
@@ -495,15 +421,6 @@ def add_comment(request, event_id):
     
     return redirect('event_detail', event_id=event_id)
 
-
-#Gestion des likes
-# @login_required
-# def like_event(request, event_id):
-#     # En mode statique, simuler un like réussi
-#     if request.is_ajax():
-#         return JsonResponse({'status': 'success', 'likes_count': 10})
-#     else:
-#         return redirect('event_detail', event_id=event_id)
 
 @login_required
 def like_event(request, event_id):
@@ -924,3 +841,63 @@ def events_paginated_api(request):
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=400)
 
+
+@login_required
+def register_for_event(request, event_id):
+    if request.method == "POST":
+        name = request.POST.get("name")
+        email = request.POST.get("email")
+        num_seats = request.POST.get("num_seats")
+        booking_data = {
+            "name": name,
+            "email": email,
+            "num_seats": num_seats
+        }
+
+        request.session['booking_data'] = booking_data
+        
+        try:
+            # Récupérer l'événement depuis la collection
+            event = event_collection.find_one({"_id": ObjectId(event_id)})
+            if not event:
+                messages.error(request, "Événement introuvable.")
+                return redirect('home')
+            
+            if event.get("price", 0) == 0:
+                return redirect('booking_confirmation', event_id=event_id)
+            
+            else:
+                return redirect('payment', event_id=event_id)
+            
+        except Exception as e:
+            messages.error(request, f"Erreur lors de la réservation : {str(e)}")
+            return redirect('event_detail', event_id=event_id)
+
+
+    return redirect('event_detail', event_id=event_id)  # fallback
+
+@login_required
+def booking_confirmation(request, event_id):
+    try:
+        event = event_collection.find_one({"_id": ObjectId(event_id)})
+        if not event:
+            raise Http404("Événement introuvable.")
+    except Exception as e:
+        raise Http404(f"Erreur : {str(e)}")
+
+    booking_data = request.session.get('booking_data')
+
+    if not booking_data:
+        raise Http404("Aucune donnée de réservation trouvée.")
+
+    price_per_seat = event.get("price", 0)
+    total_price = int(booking_data.get("num_seats", 1)) * price_per_seat
+
+    context = {
+        'event': event,
+        'booking': booking_data,
+        'total_price': total_price
+    }
+
+    return render(request, 'event_manager/booking_confirmation.html', context)
+  
