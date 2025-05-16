@@ -375,63 +375,27 @@ def create_event(request):
         
     return render(request, 'event_manager/create_event.html')
 
+
 # @login_required
-# def register_for_event(request, event_id):
-#     if request.method == 'POST':
-#         # Traitement du formulaire de réservation
-#         name = request.POST.get('name')
-#         email = request.POST.get('email')
-#         num_seats = int(request.POST.get('num_seats', 1))
-        
-#         # Validation simplifiée
-#         if not all([name, email, num_seats > 0]):
-#             messages.error(request, 'Veuillez remplir tous les champs correctement.')
-#             return redirect('event_detail', event_id=event_id)
-        
-#         # En mode statique, simuler une réservation réussie
-#         # Dans un cas réel, nous créerions une réservation dans la base de données MongoDB
-#         try:
-#             # Vérifier si l'événement existe dans la collection
-#             # Convertir l'ID en ObjectId si possible
-#             mongo_id = try_convert_to_objectid(event_id)
-#             event = event_collection.find_one({"_id": mongo_id})
-            
-#             # Si nous avons trouvé l'événement, traiter la réservation
-#             if event:
-#                 # Simuler une réservation
-#                 booking_id = 1  # Simuler un ID de réservation
-                
-#                 # Dans un environnement de production, nous ajouterions la réservation à une collection
-#                 booking_data = {
-#                     "event_id": event_id,
-#                     "user_id": request.user['id'],
-#                     "name": name,
-#                     "email": email,
-#                     "num_seats": num_seats,
-#                     "payment_status": 'completed' if event.get('price', 0) > 0 else 'pending'
-#                 }
-#                 booking_id = booking_collection.insert_one(booking_data).inserted_id
-                
-#                 # Rediriger vers la page de confirmation
-#                 return redirect('payment', event_id=event_id, booking_id=booking_id)
-#             else:
-#                 # En mode statique/démo, on simule avec l'ID 1
-#                 messages.success(request, 'Réservation effectuée avec succès!')
-#                 return redirect('payment', event_id=event_id, booking_id=1)
-                
-#         except Exception as e:
-#             messages.error(request, f'Une erreur est survenue lors de la réservation: {str(e)}')
-#             return redirect('event_detail', event_id=event_id)
-    
-#     # Si ce n'est pas un POST, rediriger vers la page de détails
-#     return redirect('event_detail', event_id=event_id)
-
-
-@login_required
 def register_for_event(request, event_id):
-    return redirect('payment', event_id=event_id)
+    if request.method == "POST":
+        # Récupérer les données du formulaire
+        name = request.POST.get("name")
+        email = request.POST.get("email")
+        num_seats = request.POST.get("num_seats")
 
+        # Stocker temporairement en session
+        booking_data = {
+            "name": name,
+            "email": email,
+            "num_seats": num_seats
+        }
 
+        request.session['booking_data'] = booking_data
+        
+        return redirect('payment', event_id=event_id)
+
+    return redirect('event_detail', event_id=event_id)  # fallback
 
 
 # Page de confirmation de réservation
@@ -814,7 +778,7 @@ def profile_view(request):
     })
 
 
-
+@login_required
 def payment(request, event_id):
     try:
         event = event_collection.find_one({"_id": ObjectId(event_id)})
@@ -823,7 +787,23 @@ def payment(request, event_id):
     except Exception as e:
         raise Http404(f"Erreur : {str(e)}")
 
-    return render(request, 'event_manager/payment.html', {'event': event})
+
+
+    booking_data = request.session.get('booking_data')
+
+    if not booking_data:
+        raise Http404("Aucune donnée de réservation trouvée.")
+
+    price_per_seat = event.get("price", 0)
+    total_price = int(booking_data.get("num_seats", 1)) * price_per_seat
+
+    context = {
+        'event': event,
+        'booking': booking_data,
+        'total_price': total_price
+    }
+
+    return render(request, 'event_manager/payment.html', context)
   
 
 # API pour la pagination AJAX des événements
@@ -943,3 +923,4 @@ def events_paginated_api(request):
         
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=400)
+
