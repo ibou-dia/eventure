@@ -34,14 +34,27 @@
             </div>
         </div>
         <div class="event-actions">
-            <span class="like-btn" data-event-id="{{ event.id }}">
+
+            <!-- <span class="like-btn" data-event-id="{{ event.id }}">
                 {% if user_has_liked %}
                     <i class="fas fa-heart text-red"></i>
                 {% else %}
                     <i class="far fa-heart"></i>
                 {% endif %}
             </span>
-            <span class="likes-count">{{ event.likes_count }}</span>
+            <span class="likes-count">{{ event.likes_count }}</span> -->
+
+            {% if request.is_authenticated %}
+            <button class="like-btn" data-event-id="{{ event.id }}">
+                <i class="far fa-heart"></i>
+            </button>
+            {% else %}
+            <a href="{% url 'login' %}?next={{ request.path }}" class="like-btn-login">
+                <i class="far fa-heart"></i>
+            </a>
+            {% endif %}
+            <span class="likes-count">{{ event.likes_count|default:0 }}</span>
+            
         </div>
     </div>
 
@@ -70,15 +83,16 @@
                 <div class="price free">Entrée gratuite</div>
                 {% endif %}
                 
+                {% if request.is_authenticated %}
                 <form method="post" action="{% url 'register_for_event' event_id=event.id %}">
                     {% csrf_token %}
                     <div class="form-group">
                         <label for="name">Nom complet</label>
-                        <input type="text" name="name" id="name" required>
+                        <input type="text" name="name" id="name" value="{{ request.user.username }}" required>
                     </div>
                     <div class="form-group">
                         <label for="email">Email</label>
-                        <input type="email" name="email" id="email" required>
+                        <input type="email" name="email" id="email" value="{{ request.user.email }}" required>
                     </div>
                     <div class="form-group">
                         <label for="num_seats">Nombre de places</label>
@@ -97,6 +111,12 @@
                         </button>
                     </div>
                 </form>
+                {% else %}
+                <div class="login-required">
+                    <p>Vous devez être connecté pour réserver cet événement.</p>
+                    <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-primary btn-block">Se connecter pour réserver</a>
+                </div>
+                {% endif %}
                 
                 <div class="ticket-footer">
                     <p><i class="fas fa-info-circle"></i> Les places sont attribuées par ordre d'arrivée</p>
@@ -110,6 +130,7 @@
         
         <div class="comment-form">
             <h3>Ajouter un commentaire</h3>
+            {% if request.is_authenticated %}
             <form method="post" action="{% url 'add_comment' event_id=event.id %}">
                 {% csrf_token %}
                 <div class="form-group">
@@ -119,6 +140,12 @@
                     <button type="submit" class="btn btn-secondary">Publier</button>
                 </div>
             </form>
+            {% else %}
+            <div class="login-required">
+                <p>Vous devez être connecté pour laisser un commentaire.</p>
+                <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-primary">Se connecter</a>
+            </div>
+            {% endif %}
         </div>
         
         <div class="comments-list">

@@ -872,7 +872,20 @@ def register_for_event(request, event_id):
                 return redirect('home')
             
             if event.get("price", 0) == 0:
-                return redirect('booking_confirmation', event_id=event_id)
+                place_restante=event.get("remaining_seat")
+                place_restante-=int(num_seats)
+                if place_restante >=0:
+                    bookings = {
+                        "event_id": ObjectId(event_id),
+                        "user_id": request.user['_id'],
+                        "name": name,
+                        "email": email,
+                        "num_seats": num_seats,
+                        "event_name": event.get("title"),
+                    }
+                    event_collection.update_one({"_id": ObjectId(event_id)}, {"$set": {"remaining_seat":place_restante}})
+                    booking_collection.insert_one(bookings)
+                    return redirect('booking_confirmation', event_id=event_id)
             
             else:
                 return redirect('payment', event_id=event_id)
