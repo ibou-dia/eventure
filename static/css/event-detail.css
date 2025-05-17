@@ -266,13 +266,8 @@
 
 
 .like-btn {
-    cursor: pointer;
+    position: relative;
+    z-index: 10;
     background: none;
     border: none;
-    outline: none;
-    font-size: 1.5rem;
-    color: #d9534f; /* rouge */
-}
-.like-btn .liked {
-    color: #e74c3c;
 }

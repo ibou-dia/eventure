@@ -34,10 +34,14 @@
             </div>
         </div>
         <div class="event-actions">
-            <button class="like-btn" data-event-id="{{ event.id }}">
-                <i class="far fa-heart"></i>
-            </button>
-            <span class="likes-count">{{ event.likes_count|default:0 }}</span>
+            <span class="like-btn" data-event-id="{{ event.id }}">
+                {% if user_has_liked %}
+                    <i class="fas fa-heart text-red"></i>
+                {% else %}
+                    <i class="far fa-heart"></i>
+                {% endif %}
+            </span>
+            <span class="likes-count">{{ event.likes_count }}</span>
         </div>
     </div>
 
@@ -147,104 +151,33 @@
 
 {% block extra_js %}
 <script>
-    // Code pour gérer les likes (simulé pour le frontend)
-    // function initLikeButtons() {
-    //     document.querySelectorAll('.like-btn').forEach(button => {
-    //         button.addEventListener('click', function() {
-    //             const eventId = this.dataset.eventId;
-    //             const icon = this.querySelector('i');
-    //             const likesCount = this.parentElement.querySelector('.likes-count');
+    document.addEventListener("DOMContentLoaded", function () {
+        const likeBtn = document.querySelector(".like-btn");
+        const likesCount = document.querySelector(".likes-count");
 
-    //             // Simuler l'alternance de l'icône de like
-    //             if (icon.classList.contains('far')) {
-    //                 icon.classList.remove('far');
-    //                 icon.classList.add('fas');
-    //                 icon.classList.add('liked');
-    //                 likesCount.textContent = parseInt(likesCount.textContent) + 1;
-    //             } else {
-    //                 icon.classList.remove('fas');
-    //                 icon.classList.remove('liked');
-    //                 icon.classList.add('far');
-    //                 likesCount.textContent = parseInt(likesCount.textContent) - 1;
-    //             }
+        likeBtn.addEventListener("click", function () {
+            const eventId = this.dataset.eventId;
 
-    //             // En production, ceci serait un appel AJAX au backend
-    //             console.log(`Like toggled for event ${eventId}`);
-    //         });
-    //     });
-    // }
-    
-    // // Initialiser les boutons de like au chargement initial
-    // initLikeButtons();
-
-
-document.addEventListener('DOMContentLoaded', function () {
-        document.querySelectorAll('.like-btn').forEach(button => {
-            button.addEventListener('click', function () {
-                const eventId = this.dataset.eventId;
-                const icon = this.querySelector('i');
-                const likesCountElem = this.parentElement.querySelector('.likes-count');
-
-                fetch(`/events/${eventId}/like/`, {
-                    method: 'POST',
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': getCookie('csrftoken'),
-                    },
-                    body: JSON.stringify({})
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        if (data.action === 'liked') {
-                            icon.classList.remove('far');
-                            icon.classList.add('fas', 'liked');
-                        } else {
-                            icon.classList.remove('fas', 'liked');
-                            icon.classList.add('far');
-                        }
-                        likesCountElem.textContent = data.likes_count;
-                    }
-                })
-                .catch(error => console.error('Erreur lors du like:', error));
+            fetch("{% url 'toggle_like' %}", {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}",
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ event_id: eventId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "liked") {
+                    likeBtn.querySelector("i").classList.remove("far");
+                    likeBtn.querySelector("i").classList.add("fas", "text-red");
+                } else if (data.status === "unliked") {
+                    likeBtn.querySelector("i").classList.remove("fas", "text-red");
+                    likeBtn.querySelector("i").classList.add("far");
+                }
+                likesCount.textContent = data.likes_count;
             });
         });
-
-        // Fonction pour lire le token CSRF depuis les cookies
-        function getCookie(name) {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
-                }
-            }
-            return cookieValue;
-        }
-    });
-
-
-    
-
-
-
-    // Validation du formulaire de réservation
-    document.querySelector('.ticket-box form').addEventListener('submit', function(e) {
-        const numSeats = parseInt(document.getElementById('num_seats').value);
-        const maxSeats = parseInt(document.getElementById('num_seats').getAttribute('max'));
-        
-        if (numSeats <= 0) {
-            e.preventDefault();
-            alert('Veuillez sélectionner au moins une place.');
-        } else if (numSeats > maxSeats) {
-            e.preventDefault();
-            alert(`Il ne reste que ${maxSeats} places disponibles.`);
-        }
     });
 </script>
 {% endblock %}

@@ -14,7 +14,8 @@ from .middleware import login_required  # Utiliser notre propre décorateur logi
 from bson.binary import Binary
 from datetime import datetime
 import base64
-
+from django.views.decorators.csrf import csrf_exempt
+import json
 
 # Fonction utilitaire pour convertir un ID en ObjectId si possible
 def try_convert_to_objectid(id_string):
@@ -196,7 +197,7 @@ def event_detail(request, event_id):
     
     # Convertir l'ObjectId en chaîne pour les URLs
     event['id'] = str(event['_id'])
-    event['likes_count'] = len(event.get('likes', []))
+    # event['likes_count'] = likes_collection.count_documents({"event_id": event_id_obj})
 
     # Récupérer les commentaires associés à cet événement, triés par date décroissante
     comments = list(comments_collection.find({"event_id": event_id}).sort("created_at", -1))
@@ -206,12 +207,19 @@ def event_detail(request, event_id):
         comment['id'] = str(comment['_id'])
     
     
+    user_has_liked = False
+    if request.user.get('is_authenticated'):
+        user_has_liked = likes_collection.find_one({
+            "user_id": str(request.user.get('id')),
+            "event_id": event.id
+        }) is not None
 
 
     
     context = {
         'event': event,
         'comments': comments,
+        "user_has_liked": user_has_liked
     }
     
     return render(request, 'event_manager/event_detail.html', context)
@@ -901,3 +909,56 @@ def booking_confirmation(request, event_id):
 
     return render(request, 'event_manager/booking_confirmation.html', context)
   
+
+
+
+
+
+
+
+
+@csrf_exempt
+@login_required
+def toggle_like(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        event_id_str = data.get("event_id")
+        user_id = data.get("user_id")
+        # user_id = str(request.user.id)
+        
+        try:
+            event_id_obj = ObjectId(event_id_str)
+        except:
+            return JsonResponse({"error": "Invalid event_id"}, status=400)
+
+    # Reste du code
+        existing_like = likes_collection.find_one({"user_id": user_id, "event_id": event_id_str})
+
+        if existing_like:
+            # Unlike
+            likes_collection.delete_one({"_id": existing_like["_id"]})
+            likes_count = likes_collection.count_documents({"event_id": event_id_str})
+            
+            event_collection.update_one(
+                {"_id": event_id_obj}, 
+                {"$set": {"likes_count": likes_count}}
+            )
+
+            return JsonResponse({"status": "unliked", "likes_count": likes_count})
+
+        else:
+            # Like
+            likes_collection.insert_one({
+                "user_id": user_id,
+                "event_id": event_id_str,
+                "liked_at": datetime.utcnow()
+            })
+            likes_count = likes_collection.count_documents({"event_id": event_id_str})
+
+            event_collection.update_one(
+                {"_id": event_id_obj},  
+                {"$set": {"likes_count": likes_count}}
+            )
+
+    return JsonResponse({"status": "liked", "likes_count": likes_count})
+

@@ -19,4 +19,6 @@ urlpatterns = [
     path('booking/<str:event_id>/confirmation/', views.booking_confirmation, name='booking_confirmation'),
     path('api/events/', views.events_paginated_api, name='events_paginated_api'),
 
+
+    path('like/', views.toggle_like, name='toggle_like'),
 ]
