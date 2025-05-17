@@ -964,7 +964,7 @@ def toggle_like(request):
             likes_collection.insert_one({
                 "user_id": user_id,
                 "event_id": event_id_str,
-                "liked_at": datetime.utcnow()
+                "liked_at": datetime.now()
             })
             likes_count = likes_collection.count_documents({"event_id": event_id_str})
 

@@ -280,29 +280,29 @@
 
 
 
-/* 
+
 .like-btn {
     position: relative;
     z-index: 10;
     background: none;
     border: none;
-} */
+}
 
-.like-btn, .like-btn-login {
+/* .like-btn, .like-btn-login {
     cursor: pointer;
     background: none;
     border: none;
     outline: none;
     font-size: 1.5rem;
-    color: #d9534f; /* rouge */
+    color: #d9534f; 
     display: inline-block;
     text-decoration: none;
 }
 
 .like-btn-login:hover {
-    color: #c9302c; /* rouge plus foncé au survol */
+    color: #c9302c; 
     text-decoration: none;
-}
+} */
 
 .like-btn .liked {
     color: #e74c3c;
