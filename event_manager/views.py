@@ -715,6 +715,26 @@ def payment(request, event_id):
 
 
     booking_data = request.session.get('booking_data')
+    if request.method == 'POST':
+        numero = request.POST.get('numero')
+        methode = request.POST.get('methode')
+        paiement_confirme = request.POST.get('paiement_confirme') == 'true'
+
+        if paiement_confirme and numero:
+            nb_place=int(booking_data["num_seats"])
+            place_restante=int(event["remaining_seat"])
+            place_restante-=nb_place
+            if place_restante>0:
+                bookings={
+                    'event_id':event["_id"],
+                    "user_id": request.user['_id'],
+                    'name': booking_data["name"],
+                    'email': booking_data["email"],
+                    'num_seats': booking_data["num_seats"],
+                    'event_title':event["title"]
+                }
+                event_collection.update_one({"_id": ObjectId(event_id)}, {"$set": {"remaining_seat": place_restante}})
+                booking_collection.insert_one(bookings)
 
     if not booking_data:
         raise Http404("Aucune donnée de réservation trouvée.")
