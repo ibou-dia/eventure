@@ -731,7 +731,8 @@ def payment(request, event_id):
                     'name': booking_data["name"],
                     'email': booking_data["email"],
                     'num_seats': booking_data["num_seats"],
-                    'event_title':event["title"]
+                    'event_title':event["title"],
+                    'created_at': datetime.utcnow(),
                 }
                 event_collection.update_one({"_id": ObjectId(event_id)}, {"$set": {"remaining_seat": place_restante}})
                 booking_collection.insert_one(bookings)
@@ -902,6 +903,7 @@ def register_for_event(request, event_id):
                         "email": email,
                         "num_seats": num_seats,
                         "event_name": event.get("title"),
+                        'created_at': datetime.utcnow(),
                     }
                     event_collection.update_one({"_id": ObjectId(event_id)}, {"$set": {"remaining_seat":place_restante}})
                     booking_collection.insert_one(bookings)
@@ -995,3 +997,9 @@ def toggle_like(request):
 
     return JsonResponse({"status": "liked", "likes_count": likes_count})
 
+
+def reservation (request,event_id):
+    reservations = list(booking_collection.find({'event_id': ObjectId(event_id)}))
+    event=event_collection.find_one({"_id": ObjectId(event_id)})
+    place_vendues=int(event["total_seats"])-int(event["remaining_seat"])
+    return render(request,"event_manager/reservations.html",{'reservations':reservations,"evenement":event,"place_vendues":place_vendues})

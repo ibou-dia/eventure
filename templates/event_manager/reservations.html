@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Réservations - Détails de l'événement</title>
+    <style>
+        :root {
+            --primary: #6958d8;
+            --primary-light: #8679e8;
+            --text-dark: #333;
+            --text-light: #666;
+            --bg-light: #f8f9fa;
+            --bg-card: white;
+            --border-radius: 10px;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .back-button {
+            background-color: transparent;
+            border: none;
+            color: var(--primary);
+            font-size: 24px;
+            cursor: pointer;
+            margin-right: 15px;
+        }
+
+        .event-title {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .event-details {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            background-color: var(--bg-card);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+        }
+
+        .event-detail {
+            display: flex;
+            align-items: center;
+            color: var(--text-light);
+            font-size: 14px;
+        }
+
+        .event-detail i {
+            margin-right: 5px;
+        }
+
+        .search-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            background-color: var(--bg-card);
+            border-radius: 30px;
+            padding: 8px 15px;
+            box-shadow: var(--shadow);
+            width: 300px;
+        }
+
+        .search-box input {
+            border: none;
+            outline: none;
+            flex: 1;
+            padding: 5px;
+            font-size: 14px;
+        }
+
+        .search-box i {
+            color: var(--text-light);
+        }
+
+        .export-button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            padding: 8px 20px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .export-button:hover {
+            background-color: var(--primary-light);
+        }
+
+        .reservations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .reservation-card {
+            background-color: var(--bg-card);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            box-shadow: var(--shadow);
+            transition: transform 0.2s;
+        }
+
+        .reservation-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .profile-pic {
+            width: 60px;
+            height: 60px;
+            background-color: #f57c7c;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .reservation-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .reservation-email {
+            color: var(--text-light);
+            font-size: 14px;
+            margin-bottom: 15px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .reservation-date {
+            display: flex;
+            align-items: center;
+            color: var(--text-light);
+            font-size: 14px;
+        }
+
+        .reservation-date i {
+            margin-right: 5px;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+        }
+
+        .action-button {
+            background-color: transparent;
+            border: none;
+            color: var(--text-light);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 14px;
+            padding: 5px;
+        }
+
+        .action-button:hover {
+            color: var(--primary);
+        }
+
+        .action-button.danger:hover {
+            color: #dc3545;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background-color: var(--bg-card);
+            border-radius: var(--border-radius);
+            padding: 15px;
+            box-shadow: var(--shadow);
+            flex: 1;
+            margin: 0 10px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: var(--text-light);
+            font-size: 14px;
+        }
+
+        .no-results {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 30px;
+            color: var(--text-light);
+            font-size: 16px;
+            background-color: var(--bg-card);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .reservations-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .stat-card {
+                margin: 0;
+            }
+
+            .search-container {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .search-box {
+                width: 100%;
+            }
+        }
+
+        /* Couleurs des profils variées */
+        .profile-pic:nth-child(5n+1) { background-color: #f57c7c; }
+        .profile-pic:nth-child(5n+2) { background-color: #7c95f5; }
+        .profile-pic:nth-child(5n+3) { background-color: #7cf5ae; }
+        .profile-pic:nth-child(5n+4) { background-color: #f5d67c; }
+        .profile-pic:nth-child(5n+5) { background-color: #c07cf5; }
+
+        /* Style pour les cartes masquées */
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <button class="back-button" onclick="window.location.href='{% url 'profile' %}'">←</button>
+            <h1 class="event-title">Cours de Donne</h1>
+        </header>
+
+        <div class="event-details">
+            <div class="event-detail">
+                <i>📅</i> {{ evenement.date|date:"d M" }} • {{ evenement.date|time:"H:i" }}
+            </div>
+            <div class="event-detail">
+                <i>📍</i> {{ evenement.location }}
+            </div>
+            <div class="event-detail">
+                <i>🎵</i> {{ evenement.type }}
+            </div>
+            <div class="event-detail">
+                <i>👥</i> {{ evenement.remaining_seat }} places restantes
+            </div>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="total-reservations">{{ evenement.total_seats }}</div>
+                <div class="stat-label">Places total</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ place_vendues }}</div>
+                <div class="stat-label">Confirmées</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ evenement.remaining_seat }}</div>
+                <div class="stat-label">Places restantes</div>
+            </div>
+        </div>
+
+        <div class="search-container">
+            <div class="search-box">
+                <i>🔍</i>
+                <input type="text" id="search-input" placeholder="Rechercher par nom ou email..." autocomplete="off">
+            </div>
+            <button class="export-button">
+                <i>⬇️</i> Exporter
+            </button>
+        </div>
+
+        <div class="reservations-grid" id="reservations-grid">
+            {% for reservation in reservations %}
+            <div class="reservation-card" data-name="{{ evenement.title }}" data-email="{{ reservation.email }}" data-id="{{ reservation.id }}">
+                <div class="profile-pic" style="background-color: {{ reservation.couleur|default:'#f57c7c' }};">{{ reservation.initiales }}</div>
+                <div class="reservation-name">{{ reservation.name }}</div>
+                <div class="reservation-email">{{ reservation.email }}</div>
+                <div style="display: flex; flex-direction: column;" class="reservation-date">
+                  <span><i>🕒</i> Réservé le {{ reservation.created_at|date:"d M Y" }}</span>
+                  <span><i>👥</i> {{ reservation.num_seats }} places réservées</span>
+                </div>
+                <div class="actions">
+                    <button class="action-button" data-id="{{ reservation.id }}">
+                        <i>✉️</i> Contacter
+                    </button>
+                    <button class="action-button danger" data-id="{{ reservation.id }}">
+                        <i>❌</i> Annuler
+                    </button>
+                </div>
+            </div>
+            {% empty %}
+            <div class="no-results">
+                Aucune réservation n'est disponible.
+            </div>
+            {% endfor %}
+
+            <div class="no-results" id="no-results">
+                Aucune réservation ne correspond à votre recherche.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Récupération des éléments du DOM
+            const searchInput = document.getElementById('search-input');
+            const reservationsGrid = document.getElementById('reservations-grid');
+            const reservationCards = document.querySelectorAll('.reservation-card');
+            const noResultsMessage = document.getElementById('no-results');
+            const totalReservationsDisplay = document.getElementById('total-reservations');
+
+            // Fonction de recherche
+            function performSearch() {
+                const searchTerm = searchInput.value.toLowerCase().trim();
+                let visibleCount = 0;
+
+                // Parcourir toutes les cartes de réservation
+                reservationCards.forEach(card => {
+                    const name = card.getAttribute('data-name').toLowerCase();
+                    const email = card.getAttribute('data-email').toLowerCase();
+
+                    // Vérifier si le terme de recherche correspond au nom ou à l'email
+                    if (searchTerm === '' || name.includes(searchTerm) || email.includes(searchTerm)) {
+                        card.classList.remove('hidden');
+                        visibleCount++;
+                    } else {
+                        card.classList.add('hidden');
+                    }
+                });
+
+                // Afficher ou masquer le message "Aucun résultat"
+                if (visibleCount === 0 && searchTerm !== '') {
+                    noResultsMessage.style.display = 'block';
+                } else {
+                    noResultsMessage.style.display = 'none';
+                }
+
+                // Mettre à jour le nombre de réservations affichées
+                if (searchTerm !== '') {
+                    totalReservationsDisplay.textContent = visibleCount.toString();
+                } else {
+                    // Remettre le nombre total d'origine
+                    totalReservationsDisplay.textContent = '32';
+                }
+            }
+
+            // Écouteur d'événement pour la saisie dans le champ de recherche
+            searchInput.addEventListener('input', performSearch);
+
+            // Écouteur d'événement pour le bouton d'exportation
+            document.querySelector('.export-button').addEventListener('click', function() {
+                alert('Fonctionnalité d\'exportation: les données seraient exportées ici.');
+            });
+
+            // Ajouter des écouteurs aux boutons d'action
+            document.querySelectorAll('.action-button').forEach(button => {
+                button.addEventListener('click', function() {
+                    const isContact = this.textContent.includes('Contacter');
+                    const card = this.closest('.reservation-card');
+                    const name = card.querySelector('.reservation-name').textContent;
+
+                    if (isContact) {
+                        alert(`Contacter ${name}`);
+                    } else {
+                        if (confirm(`Êtes-vous sûr de vouloir annuler la réservation de ${name} ?`)) {
+                            card.remove();
+
+                            // Mettre à jour le nombre total
+                            const currentTotal = parseInt(totalReservationsDisplay.textContent);
+                            totalReservationsDisplay.textContent = (currentTotal - 1).toString();
+
+                            // Revérifier s'il n'y a plus de résultats
+                            if (document.querySelectorAll('.reservation-card:not(.hidden)').length === 0) {
+                                noResultsMessage.style.display = 'block';
+                            }
+                        }
+                    }
+                });
+            });
+
+            // Ajouter un écouteur au bouton retour
+            document.querySelector('.back-button').addEventListener('click', function() {
+                alert('Retour à la liste des événements');
+            });
+        });
+    </script>
+</body>
+</html>
