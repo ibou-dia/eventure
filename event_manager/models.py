@@ -10,7 +10,7 @@ user_collection = db['User']
 booking_collection = db['Booking']
 comments_collection = db['comments']
 likes_collection = db['likes']
-
+invitations_collection = db['invitation']
 
 # Classe utilitaire pour les utilisateurs MongoDB
 class MongoUser:

@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse, HttpResponseRedirect, Http404
 from django.urls import reverse
 from django.contrib import messages
-from .models import event_collection, user_collection, booking_collection, comments_collection, likes_collection,MongoUser
+from .models import event_collection, user_collection, booking_collection, comments_collection, likes_collection, invitations_collection,MongoUser
 from datetime import datetime
 from django.db.models import Count
 from django.utils import timezone
@@ -16,6 +16,8 @@ from datetime import datetime
 import base64
 from django.views.decorators.csrf import csrf_exempt
 import json
+from django.core.mail import send_mail
+
 
 # Fonction utilitaire pour convertir un ID en ObjectId si possible
 def try_convert_to_objectid(id_string):
@@ -968,13 +970,6 @@ def booking_confirmation(request, event_id):
     return render(request, 'event_manager/booking_confirmation.html', context)
   
 
-
-
-
-
-
-
-
 @csrf_exempt
 @login_required
 def toggle_like(request):
@@ -1021,8 +1016,73 @@ def toggle_like(request):
     return JsonResponse({"status": "liked", "likes_count": likes_count})
 
 
+@login_required
+def invitation(request, event_id):
+    event = event_collection.find_one({'_id': ObjectId(event_id)})
+
+    if not event:
+        return render(request, '404.html', status=404)
+
+    event['id_str'] = str(event['_id'])
+
+    event_url = request.build_absolute_uri(
+        reverse('event_detail', kwargs={'event_id': str(event['_id'])})
+    )
+    context = {
+        'event': event,
+        'event_url': event_url,
+    }
+
+    return render(request, 'event_manager/invitation.html', context)
+
+
+@login_required
+def send_invitations(request, event_id):
+    if request.method == 'POST':
+        event = event_collection.find_one({'_id': ObjectId(event_id)})
+
+        if not event:
+            return render(request, '404.html', status=404)
+
+        raw_contacts = request.POST.get('friends', '')
+        contacts = [c.strip() for c in raw_contacts.split(',') if c.strip()]
+
+        saved = 0
+        for contact in contacts:
+            # Créer une structure d’invitation
+            invitation_data = {
+                'event_id': event_id,
+                'contact': contact,
+                'status': 'pending',
+            }
+            # Enregistrer dans la collection MongoDB
+            invitations_collection.insert_one(invitation_data)
+
+            # Optionnel : envoyer email
+            if '@' in contact:  # Simple détection d'email
+                try:
+                    send_mail(
+                        subject=f"Invitation à l'événement {event.get('title', '')}",
+                        message=f"Vous êtes invité à participer à l’événement : {event.get('title', '')}",
+                        from_email='votre_adresse@exemple.com',
+                        recipient_list=[contact],
+                        fail_silently=True,
+                    )
+                except Exception as e:
+                    print(f"Erreur d'envoi à {contact} : {e}")
+
+            saved += 1
+
+        messages.success(request, f"{saved} invitations ont été envoyées et enregistrées.")
+        # return redirect('invitation_success', event_id=event_id)
+
+    return redirect('invitation', event_id=event_id)
+
+
 def reservation (request,event_id):
     reservations = list(booking_collection.find({'event_id': ObjectId(event_id)}))
     event=event_collection.find_one({"_id": ObjectId(event_id)})
     place_vendues=int(event["total_seats"])-int(event["remaining_seat"])
-    return render(request,"event_manager/reservations.html",{'reservations':reservations,"evenement":event,"place_vendues":place_vendues})
+    total=int(event["total_seats"])
+    return render(request,"event_manager/reservations.html",{'reservations':reservations,"evenement":event,"place_vendues":place_vendues,"total":total})
+

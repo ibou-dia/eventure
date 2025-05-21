@@ -89,7 +89,7 @@
             border-radius: 30px;
             padding: 8px 15px;
             box-shadow: var(--shadow);
-            width: 300px;
+            width: 100%;
         }
 
         .search-box input {
@@ -306,7 +306,7 @@
 
         <div class="stats">
             <div class="stat-card">
-                <div class="stat-number" id="total-reservations">{{ evenement.total_seats }}</div>
+                <div class="stat-number" id="total-reservations">{{ total }}</div>
                 <div class="stat-label">Places total</div>
             </div>
             <div class="stat-card">
@@ -324,14 +324,14 @@
                 <i>🔍</i>
                 <input type="text" id="search-input" placeholder="Rechercher par nom ou email..." autocomplete="off">
             </div>
-            <button class="export-button">
-                <i>⬇️</i> Exporter
-            </button>
+{#            <button class="export-button">#}
+{#                <i>⬇️</i> Exporter#}
+{#            </button>#}
         </div>
 
         <div class="reservations-grid" id="reservations-grid">
             {% for reservation in reservations %}
-            <div class="reservation-card" data-name="{{ evenement.title }}" data-email="{{ reservation.email }}" data-id="{{ reservation.id }}">
+            <div class="reservation-card" data-name="{{ reservation.name }}" data-email="{{ reservation.email }}" data-id="{{ reservation.id }}">
                 <div class="profile-pic" style="background-color: {{ reservation.couleur|default:'#f57c7c' }};">{{ reservation.initiales }}</div>
                 <div class="reservation-name">{{ reservation.name }}</div>
                 <div class="reservation-email">{{ reservation.email }}</div>
@@ -342,9 +342,6 @@
                 <div class="actions">
                     <button class="action-button" data-id="{{ reservation.id }}">
                         <i>✉️</i> Contacter
-                    </button>
-                    <button class="action-button danger" data-id="{{ reservation.id }}">
-                        <i>❌</i> Annuler
                     </button>
                 </div>
             </div>
@@ -394,14 +391,6 @@
                 } else {
                     noResultsMessage.style.display = 'none';
                 }
-
-                // Mettre à jour le nombre de réservations affichées
-                if (searchTerm !== '') {
-                    totalReservationsDisplay.textContent = visibleCount.toString();
-                } else {
-                    // Remettre le nombre total d'origine
-                    totalReservationsDisplay.textContent = '32';
-                }
             }
 
             // Écouteur d'événement pour la saisie dans le champ de recherche
@@ -436,11 +425,6 @@
                         }
                     }
                 });
-            });
-
-            // Ajouter un écouteur au bouton retour
-            document.querySelector('.back-button').addEventListener('click', function() {
-                alert('Retour à la liste des événements');
             });
         });
     </script>
