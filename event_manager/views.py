@@ -16,6 +16,8 @@ from datetime import datetime
 import base64
 from django.views.decorators.csrf import csrf_exempt
 import json
+from django.core.mail import send_mail
+
 
 # Fonction utilitaire pour convertir un ID en ObjectId si possible
 def try_convert_to_objectid(id_string):
@@ -731,7 +733,8 @@ def payment(request, event_id):
                     'name': booking_data["name"],
                     'email': booking_data["email"],
                     'num_seats': booking_data["num_seats"],
-                    'event_title':event["title"]
+                    'event_title':event["title"],
+                    'created_at': datetime.utcnow(),
                 }
                 event_collection.update_one({"_id": ObjectId(event_id)}, {"$set": {"remaining_seat": place_restante}})
                 booking_collection.insert_one(bookings)
@@ -902,6 +905,7 @@ def register_for_event(request, event_id):
                         "email": email,
                         "num_seats": num_seats,
                         "event_name": event.get("title"),
+                        'created_at': datetime.utcnow(),
                     }
                     event_collection.update_one({"_id": ObjectId(event_id)}, {"$set": {"remaining_seat":place_restante}})
                     booking_collection.insert_one(bookings)
@@ -989,33 +993,7 @@ def toggle_like(request):
     return JsonResponse({"status": "liked", "likes_count": likes_count})
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+@login_required
 def invitation(request, event_id):
     event = event_collection.find_one({'_id': ObjectId(event_id)})
 
@@ -1035,55 +1013,7 @@ def invitation(request, event_id):
     return render(request, 'event_manager/invitation.html', context)
 
 
-
-# from django.core.mail import send_mail
-# from django.contrib import messages
-# import re
-
-# def send_invitations(request, event_id):
-#     event = event_collection.find_one({'_id': ObjectId(event_id)})
-#     if not event:
-#         return render(request, '404.html', status=404)
-
-#     if request.method == 'POST':
-#         donnees = request.POST.get('invites', '')
-#         contacts = [c.strip() for c in donnees.split(',') if c.strip()]
-
-#         emails = []
-#         numeros = []
-
-#         for contact in contacts:
-#             if re.match(r'^\+?\d{7,15}$', contact):  # simple regex pour téléphone
-#                 numeros.append(contact)
-#             elif re.match(r'^[\w\.-]+@[\w\.-]+\.\w+$', contact):  # email basique
-#                 emails.append(contact)
-
-#         # Envoi des emails
-#         for email in emails:
-#             send_mail(
-#                 'Invitation à un événement',
-#                 'Vous êtes invité à rejoindre l’événement !',
-#                 'no-reply@evenementsco.com',
-#                 [email],
-#                 fail_silently=False,
-#             )
-
-#         # Traitement des numéros (ex : via Twilio, optionnel)
-#         for numero in numeros:
-#             print(f"Envoi SMS à {numero} (simulation)")  # à remplacer par une vraie API
-
-#         messages.success(request, "Invitations envoyées avec succès !")
-#         return redirect('event_detail',  {'event': event})
-
-#     return redirect('home')
-
-
-from django.shortcuts import render, redirect
-from django.core.mail import send_mail
-from bson import ObjectId
-from django.contrib import messages
-from pymongo import MongoClient
-
+@login_required
 def send_invitations(request, event_id):
     if request.method == 'POST':
         event = event_collection.find_one({'_id': ObjectId(event_id)})
@@ -1126,7 +1056,15 @@ def send_invitations(request, event_id):
     return redirect('invitation', event_id=event_id)
 
 
-
 def invitation_success(request, event_id):
     event = event_collection.find_one({'_id': ObjectId(event_id)})
     return render(request, 'event_manager/invitation_success.html', {'event': event})
+
+
+def reservation (request,event_id):
+    reservations = list(booking_collection.find({'event_id': ObjectId(event_id)}))
+    event=event_collection.find_one({"_id": ObjectId(event_id)})
+    place_vendues=int(event["total_seats"])-int(event["remaining_seat"])
+    total=int(event["total_seats"])
+    return render(request,"event_manager/reservations.html",{'reservations':reservations,"evenement":event,"place_vendues":place_vendues,"total":total})
+

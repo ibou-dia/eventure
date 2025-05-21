@@ -7,6 +7,7 @@ urlpatterns = [
     path('register/', views.register_view, name='register'),
     path('logout/', views.logout_view, name='logout'),
     path('profile/', views.profile_view, name='profile'),
+    path('profile/<str:event_id>/',views.reservation,name='reservations'),
     path('payment/<str:event_id>/', views.payment, name='payment'),
 
     path('event/create/', views.create_event, name='create_event'),
@@ -19,8 +20,6 @@ urlpatterns = [
     path('booking/<str:event_id>/confirmation/', views.booking_confirmation, name='booking_confirmation'),
     path('api/events/', views.events_paginated_api, name='events_paginated_api'),
     path('like/', views.toggle_like, name='toggle_like'),
-
-
     path('event/<str:event_id>/send/', views.send_invitations, name='send_invitations'),
     path('event/<str:event_id>/confirmation/', views.invitation_success, name='invitation_success'),
     path('event/<str:event_id>/inviter/', views.invitation, name='invitation'),

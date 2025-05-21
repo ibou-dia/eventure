@@ -84,6 +84,7 @@
                         <!-- Exemple d'événement créé -->
                         {% for event in filtered_events %}
                                 <div class="event-card">
+                            <a href="{% url 'reservations' event.id %}" class="event-link">
                             <div class="event-image">
                                 <img src="data:image/png;base64,{{ event.image }}" alt="Image de l'événement">
                                 <div class="event-date">
@@ -92,6 +93,7 @@
                                 </div>
                                 <div class="event-badge popular">{{ event.etat}}</div>
                             </div>
+                            </a>
                             <div class="event-info">
                                 <div class="event-category">
                                     <i class="fas fa-microphone-alt"></i> {{ event.type }}
