@@ -211,9 +211,11 @@ def event_detail(request, event_id):
     
     user_has_liked = False
     if request.is_authenticated:
+        # Utiliser str(event_id_obj) pour être cohérent avec la collection de likes
+        # où nous stockons l'event_id en format string
         user_has_liked = likes_collection.find_one({
             "user_id": str(request.user.get('_id')),
-            "event_id": event_id_obj
+            "event_id": str(event_id_obj)
         }) is not None
     
     context = {
@@ -1026,8 +1028,14 @@ def toggle_like(request):
     if request.method == "POST":
         data = json.loads(request.body)
         event_id_str = data.get("event_id")
-        user_id = data.get("user_id")
-        # user_id = str(request.user.id)
+        
+        # Utiliser l'ID de l'utilisateur authentifié au lieu de celui envoyé dans les données
+        # Pour MongoDB, l'ID est stocké dans request.user['_id']
+        if not request.is_authenticated:
+            return JsonResponse({"error": "User not authenticated"}, status=401)
+            
+        # Récupérer l'ID de l'utilisateur depuis l'objet request.user (MongoDB)
+        user_id = str(request.user['_id'])
         
         try:
             event_id_obj = ObjectId(event_id_str)

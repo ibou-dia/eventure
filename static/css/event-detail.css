@@ -286,6 +286,16 @@
     z-index: 10;
     background: none;
     border: none;
+    cursor: pointer;
+}
+
+.text-red {
+    color: #f44336 !important;
+}
+
+.like-btn:hover i {
+    transform: scale(1.2);
+    transition: transform 0.2s ease;
 }
 
 /* .like-btn, .like-btn-login {
