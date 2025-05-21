@@ -1002,4 +1002,5 @@ def reservation (request,event_id):
     reservations = list(booking_collection.find({'event_id': ObjectId(event_id)}))
     event=event_collection.find_one({"_id": ObjectId(event_id)})
     place_vendues=int(event["total_seats"])-int(event["remaining_seat"])
-    return render(request,"event_manager/reservations.html",{'reservations':reservations,"evenement":event,"place_vendues":place_vendues})
+    total=int(event["total_seats"])
+    return render(request,"event_manager/reservations.html",{'reservations':reservations,"evenement":event,"place_vendues":place_vendues,"total":total})

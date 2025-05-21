@@ -306,7 +306,7 @@
 
         <div class="stats">
             <div class="stat-card">
-                <div class="stat-number" id="total-reservations">{{ evenement.total_seats }}</div>
+                <div class="stat-number" id="total-reservations">{{ total }}</div>
                 <div class="stat-label">Places total</div>
             </div>
             <div class="stat-card">
@@ -343,9 +343,6 @@
                     <button class="action-button" data-id="{{ reservation.id }}">
                         <i>✉️</i> Contacter
                     </button>
-{#                    <button class="action-button danger" data-id="{{ reservation.id }}">#}
-{#                        <i>❌</i> Annuler#}
-{#                    </button>#}
                 </div>
             </div>
             {% empty %}
@@ -394,14 +391,6 @@
                 } else {
                     noResultsMessage.style.display = 'none';
                 }
-
-                // Mettre à jour le nombre de réservations affichées
-                if (searchTerm !== '') {
-                    totalReservationsDisplay.textContent = visibleCount.toString();
-                } else {
-                    // Remettre le nombre total d'origine
-                    totalReservationsDisplay.textContent = '32';
-                }
             }
 
             // Écouteur d'événement pour la saisie dans le champ de recherche
@@ -437,9 +426,6 @@
                     }
                 });
             });
-
-            // Ajouter un écouteur au bouton retour
-
         });
     </script>
 </body>
