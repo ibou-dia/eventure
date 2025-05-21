@@ -683,11 +683,16 @@ def profile_view(request):
                     if '_id' in event:
                         event['id'] = str(event['_id'])
                     
+                    # Calculer le prix total en multipliant le prix unitaire par le nombre de places
+                    num_seats = booking.get('num_seats', 1)
+                    unit_price = event.get('price', 0)
+                    total_price = unit_price * int(num_seats)
+                    
                     bookings.append({
                         'id': str(booking.get('_id')),
                         'event': event,
-                        'num_seats': booking.get('num_seats', 1),
-                        'total_price': event.get('price', 0),
+                        'num_seats': num_seats,
+                        'total_price': total_price,
                         'status': booking.get('status', 'confirmed')
                     })
             except Exception as e:
