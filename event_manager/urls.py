@@ -21,6 +21,5 @@ urlpatterns = [
     path('api/events/', views.events_paginated_api, name='events_paginated_api'),
     path('like/', views.toggle_like, name='toggle_like'),
     path('event/<str:event_id>/send/', views.send_invitations, name='send_invitations'),
-    path('event/<str:event_id>/confirmation/', views.invitation_success, name='invitation_success'),
     path('event/<str:event_id>/inviter/', views.invitation, name='invitation'),
 ]

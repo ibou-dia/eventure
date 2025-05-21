@@ -1051,14 +1051,9 @@ def send_invitations(request, event_id):
             saved += 1
 
         messages.success(request, f"{saved} invitations ont été envoyées et enregistrées.")
-        return redirect('invitation_success', event_id=event_id)
+        # return redirect('invitation_success', event_id=event_id)
 
     return redirect('invitation', event_id=event_id)
-
-
-def invitation_success(request, event_id):
-    event = event_collection.find_one({'_id': ObjectId(event_id)})
-    return render(request, 'event_manager/invitation_success.html', {'event': event})
 
 
 def reservation (request,event_id):
