@@ -685,7 +685,7 @@ def profile_view(request):
                         'id': str(booking.get('_id')),
                         'event': event,
                         'num_seats': booking.get('num_seats', 1),
-                        'total_price': booking.get('total_price', 0),
+                        'total_price': event.get('price', 0),
                         'status': booking.get('status', 'confirmed')
                     })
             except Exception as e:
