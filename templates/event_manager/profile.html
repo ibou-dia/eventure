@@ -165,7 +165,9 @@
                                     </div>
                                     <div class="event-actions">
                                         <a href="#" class="btn btn-secondary"><i class="fas fa-ticket-alt"></i> Voir le billet</a>
-                                        <a href="#" class="btn btn-outline btn-sm"><i class="fas fa-times"></i> Annuler</a>
+                                        <a href="{% url 'cancel_booking' booking_id=booking.id %}" class="btn btn-outline btn-sm cancel-booking" data-title="{{ booking.event.title }}">
+                                            <i class="fas fa-times"></i> Annuler
+                                        </a>
                                     </div>
                                 </div>
                             </div>
@@ -322,7 +324,7 @@
 {% endblock %}
 
 {% block extra_js %}
-<!-- Modal de confirmation de suppression -->
+<!-- Modal de confirmation de suppression d'événement -->
 <div class="modal fade" id="deleteEventModal" tabindex="-1" role="dialog" aria-labelledby="deleteEventModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
@@ -344,6 +346,30 @@
                     {% csrf_token %}
                     <button type="submit" class="btn btn-danger"><i class="fas fa-trash"></i> Supprimer</button>
                 </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmation d'annulation de réservation -->
+<div class="modal fade" id="cancelBookingModal" tabindex="-1" role="dialog" aria-labelledby="cancelBookingModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-white">
+                <h5 class="modal-title" id="cancelBookingModalLabel"><i class="fas fa-exclamation-triangle"></i> Confirmer l'annulation</h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-2">Êtes-vous sûr de vouloir annuler votre réservation pour <strong><span id="bookingTitleToCancel"></span></strong> ?</p>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-circle"></i> Les places seront remises en vente et vous perdrez votre réservation.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="fas fa-times"></i> Retour</button>
+                <a id="confirmCancelBooking" href="" class="btn btn-warning"><i class="fas fa-calendar-times"></i> Confirmer l'annulation</a>
             </div>
         </div>
     </div>
@@ -387,9 +413,28 @@
             });
         });
         
-        // S'assurer que le bouton de fermeture fonctionne bien
+        // S'assurer que le bouton de fermeture fonctionne bien pour les deux modales
         $('.modal .close, .modal .btn-secondary').on('click', function() {
-            $('#deleteEventModal').modal('hide');
+            $(this).closest('.modal').modal('hide');
+        });
+        
+        // Gérer le clic sur le bouton d'annulation de réservation
+        $('.cancel-booking').on('click', function(e) {
+            e.preventDefault();
+            // Récupérer les données de la réservation
+            const bookingUrl = $(this).attr('href');
+            const eventTitle = $(this).data('title');
+            
+            // Mettre à jour la modale
+            $('#bookingTitleToCancel').text(eventTitle);
+            $('#confirmCancelBooking').attr('href', bookingUrl);
+            
+            // Afficher la modale
+            $('#cancelBookingModal').modal({
+                backdrop: 'static',
+                keyboard: false,
+                show: true
+            });
         });
     });
 </script>

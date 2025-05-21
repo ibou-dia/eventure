@@ -734,6 +734,51 @@ def profile_view(request):
 
 
 @login_required
+def cancel_booking(request, booking_id):
+    """Vue pour annuler une réservation existante"""
+    try:
+        # Convertir l'ID en ObjectId
+        booking_id_obj = ObjectId(booking_id)
+        
+        # Vérifier que la réservation existe et appartient à l'utilisateur connecté
+        booking = booking_collection.find_one({
+            "_id": booking_id_obj,
+            "user_id": request.user['_id']
+        })
+        
+        if not booking:
+            messages.error(request, "Réservation introuvable ou vous n'êtes pas autorisé à l'annuler.")
+            return redirect('profile')
+        
+        # Récupérer l'événement associé
+        event_id = booking.get('event_id')
+        event = None
+        
+        if event_id:
+            event_id_obj = ObjectId(event_id) if isinstance(event_id, str) else event_id
+            event = event_collection.find_one({"_id": event_id_obj})
+        
+        if event:
+            # Mettre à jour le nombre de places disponibles pour l'événement
+            num_seats = int(booking.get('num_seats', 1))
+            current_remaining = event.get('remaining_seat', 0)
+            new_remaining = current_remaining + num_seats
+            
+            event_collection.update_one(
+                {"_id": event_id_obj},
+                {"$set": {"remaining_seat": new_remaining}}
+            )
+        
+        # Supprimer la réservation
+        booking_collection.delete_one({"_id": booking_id_obj})
+        
+        messages.success(request, "Votre réservation a été annulée avec succès.")
+    except Exception as e:
+        messages.error(request, f"Une erreur est survenue lors de l'annulation de la réservation : {str(e)}")
+    
+    return redirect('profile')
+
+
 def payment(request, event_id):
     try:
         event = event_collection.find_one({"_id": ObjectId(event_id)})
