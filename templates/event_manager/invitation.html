@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ event.title }} | ÉvénementsCo{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/inviter-amis.css' %}">
+{% endblock %}
+{% block content %}
+<div class="invitation-card">
+    <div class="card-header">
+        <div class="logo">
+            <i class="fas fa-comments"></i>
+        </div>
+        <h2>Inviter des amis à : {{ event.title }}</h2>
+    </div>
+    
+
+    <div class="input-group">
+        <form method="POST" action="{% url 'send_invitations' event_id=event.id_str %}" >
+            {% csrf_token %}
+            <label for="friends">Emails ou téléphones des amis (séparés par des virgules)</label>
+            <textarea name="friends" rows="4" placeholder="ex: ami1@gmail.com, +221771234567" required></textarea>
+
+            <button type="submit" class="send-btn btn btn-success">Envoyer les invitations</button>
+        </form>
+    </div>
+    
+    <div class="share-section">
+        <h2>Partager sur :</h2>
+        <div class="social-links">
+            <a href="https://www.facebook.com/sharer/sharer.php?u={{ event_url }}" class="social-link facebook" title="Partager sur Facebook">
+                <i class="fab fa-facebook-f"></i>
+            </a>
+
+            <a href="https://api.whatsapp.com/send?text=Hello! Je t'invite à rejoindre cet événement : {{ event_url }}" class="social-link whatsapp" title="Partager sur WhatsApp" target="_blank">
+                <i class="fab fa-whatsapp"></i>
+            </a>
+
+            <a href="https://twitter.com/intent/tweet?url={{ event_url }}" class="social-link twitter" title="Partager sur Twitter" target="_blank">
+                <i class="fab fa-twitter"></i>
+            </a>
+        </div>
+
+
+
+
+    </div>
+    
+    <a href="{% url 'home' %}" class="btn btn-outline"><i class="fas fa-home"></i> Retour à l'accueil</a>
+</div>
+
+{% endblock %}
+{% block extra_js %}
+<script>
+    document.querySelector('.send-btn').addEventListener('click', function() {
+        const friendsInput = document.getElementById('friends').value;
+        if (friendsInput.trim() === '') {
+            alert('Veuillez entrer au moins un email ou un numéro de téléphone.');
+            return;
+        }
+        
+        // Ici, vous pourriez ajouter la logique d'envoi des invitations
+        alert('Invitations envoyées avec succès !');
+    });
+</script>
+
+{% endblock %}
+

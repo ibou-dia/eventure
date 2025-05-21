@@ -106,11 +106,14 @@
                             Réserver gratuitement
                             {% endif %}
                         </button>
-                        <button type="submit" class="btn btn-primary btn-block btn2">
+                        <!-- <button type="submit" class="btn btn-primary btn-block btn2">
                             Inviter un ami
-                        </button>
+                        </button> -->
                     </div>
                 </form>
+                <a href="{% url 'invitation' event.id %}" class="btn btn-primary btn-block btn2">
+                    Inviter un ami
+                </a>
                 {% else %}
                 <div class="login-required">
                     <p>Vous devez être connecté pour réserver cet événement.</p>
