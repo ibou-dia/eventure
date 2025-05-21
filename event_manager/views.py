@@ -208,13 +208,11 @@ def event_detail(request, event_id):
     
     
     user_has_liked = False
-    if request.user.get('is_authenticated'):
+    if request.is_authenticated:
         user_has_liked = likes_collection.find_one({
-            "user_id": str(request.user.get('id')),
-            "event_id": event.id
+            "user_id": str(request.user.get('_id')),
+            "event_id": event_id_obj
         }) is not None
-
-
     
     context = {
         'event': event,
@@ -667,39 +665,64 @@ def profile_view(request):
                 else:
                     error = "Une erreur est survenue lors de la mise à jour de votre mot de passe"
     
-    # Récupérer les réservations de l'utilisateur (simuler pour l'instant)
-    # Dans un cas réel, nous les récupérerions de la base de données MongoDB
-    bookings = [
-        {
-            'id': 1,
-            'event': {
-                'title': 'Concert de Jazz',
-                'date': timezone.now() + timezone.timedelta(days=5),
-                'location': 'Salle Pleyel, Paris'
-            },
-            'num_seats': 2,
-            'total_price': 50.00,
-            'status': 'confirmed'
-        },
-        {
-            'id': 2,
-            'event': {
-                'title': 'Festival de Cinéma',
-                'date': timezone.now() + timezone.timedelta(days=15),
-                'location': 'Cinémathèque, Lyon'
-            },
-            'num_seats': 1,
-            'total_price': 15.00,
-            'status': 'pending'
-        }
-    ]
+    # Récupérer les réservations de l'utilisateur depuis MongoDB
+    user_bookings = list(booking_collection.find({"user_id": request.user['_id']}))
+    
+    # Pour chaque réservation, récupérer les informations de l'événement
+    bookings = []
+    for booking in user_bookings:
+        event_id = booking.get('event_id')
+        if event_id:
+            try:
+                event_obj_id = ObjectId(event_id) if isinstance(event_id, str) else event_id
+                event = event_collection.find_one({"_id": event_obj_id})
+                if event:
+                    # Ajouter l'ID pour les templates
+                    if '_id' in event:
+                        event['id'] = str(event['_id'])
+                    
+                    bookings.append({
+                        'id': str(booking.get('_id')),
+                        'event': event,
+                        'num_seats': booking.get('num_seats', 1),
+                        'total_price': booking.get('total_price', 0),
+                        'status': booking.get('status', 'confirmed')
+                    })
+            except Exception as e:
+                print(f"Erreur lors de la récupération de l'événement: {e}")
+    
+    # Calculer les statistiques réelles
+    events_created_count = event_collection.count_documents({"creator_id": request.user['_id']})
+    participations_count = booking_collection.count_documents({"user_id": request.user['_id']})
+    
+    # Récupérer les likes de l'utilisateur
+    user_likes = list(likes_collection.find({"user_id": str(request.user['_id'])}))
+    likes_count = len(user_likes)
+    
+    # Récupérer les événements likés
+    liked_events = []
+    for like in user_likes:
+        event_id = like.get('event_id')
+        try:
+            event_obj_id = ObjectId(event_id) if isinstance(event_id, str) else event_id
+            event = event_collection.find_one({"_id": event_obj_id})
+            if event:
+                if '_id' in event:
+                    event['id'] = str(event['_id'])
+                liked_events.append(event)
+        except Exception as e:
+            print(f"Erreur lors de la récupération de l'événement liké: {e}")
     
     return render(request, 'event_manager/profile.html', {
         'user': user,
         'bookings': bookings,
         'error': error,
         'success': success,
-        'filtered_events':filtered_events
+        'filtered_events': filtered_events,
+        'events_created_count': events_created_count,
+        'participations_count': participations_count,
+        'likes_count': likes_count,
+        'liked_events': liked_events
     })
 
 

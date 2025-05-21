@@ -50,15 +50,15 @@
             </div>
             <div class="profile-stats">
                 <div class="stat">
-                    <span class="stat-number">5</span>
+                    <span class="stat-number">{{ events_created_count }}</span>
                     <span class="stat-label">Événements créés</span>
                 </div>
                 <div class="stat">
-                    <span class="stat-number">12</span>
+                    <span class="stat-number">{{ participations_count }}</span>
                     <span class="stat-label">Participations</span>
                 </div>
                 <div class="stat">
-                    <span class="stat-number">24</span>
+                    <span class="stat-number">{{ likes_count }}</span>
                     <span class="stat-label">Likes</span>
                 </div>
             </div>
@@ -133,39 +133,51 @@
                 <div class="tab-pane" id="registered">
                     <h2>Mes participations</h2>
                     <div class="events-grid">
-                        <!-- Exemple de participation -->
-                        <div class="event-card">
-                            <div class="event-image">
-                                <img src="https://images.unsplash.com/photo-1470020618177-f49a96241ae7?q=80&w=500&auto=format&fit=crop" alt="Festival de Cinéma">
-                                <div class="event-date">
-                                    <span class="day">25</span>
-                                    <span class="month">Mai</span>
-                                </div>
-                                <div class="event-status confirmed">Confirmé</div>
-                            </div>
-                            <div class="event-info">
-                                <div class="event-category">
-                                    <i class="fas fa-film"></i> Festival
-                                </div>
-                                <h3 class="event-title">Festival de Cinéma</h3>
-                                <p class="event-location"><i class="fas fa-map-marker-alt"></i> Cinémathèque, Lyon</p>
-                                <p class="event-time"><i class="far fa-clock"></i> 14:00</p>
-                                <div class="registration-info">
-                                    <div class="registration-detail">
-                                        <span class="label">Places :</span>
-                                        <span class="value">2</span>
+                        {% if bookings %}
+                            {% for booking in bookings %}
+                            <div class="event-card">
+                                <a href="{% url 'event_detail' booking.event.id %}" class="event-link">
+                                <div class="event-image">
+                                    <img src="data:image/png;base64,{{ booking.event.image }}" alt="{{ booking.event.title }}">
+                                    <div class="event-date">
+                                        <span class="day">{{ booking.event.date|date:"d" }}</span>
+                                        <span class="month">{{ booking.event.date|date:"M" }}</span>
                                     </div>
-                                    <div class="registration-detail">
-                                        <span class="label">Total :</span>
-                                        <span class="value">30 €</span>
+                                    <div class="event-status {% if booking.status == 'confirmed' %}confirmed{% else %}pending{% endif %}">{{ booking.status|capfirst }}</div>
+                                </div>
+                                </a>
+                                <div class="event-info">
+                                    <div class="event-category">
+                                        <i class="fas fa-{% if booking.event.type == 'Concert' %}music{% elif booking.event.type == 'Festival' %}film{% elif booking.event.type == 'Conférence' %}microphone-alt{% else %}calendar-alt{% endif %}"></i> {{ booking.event.type }}
+                                    </div>
+                                    <h3 class="event-title">{{ booking.event.title }}</h3>
+                                    <p class="event-location"><i class="fas fa-map-marker-alt"></i> {{ booking.event.location }}</p>
+                                    <p class="event-time"><i class="far fa-clock"></i> {{ booking.event.date|date:"H:i" }}</p>
+                                    <div class="registration-info">
+                                        <div class="registration-detail">
+                                            <span class="label">Places :</span>
+                                            <span class="value">{{ booking.num_seats }}</span>
+                                        </div>
+                                        <div class="registration-detail">
+                                            <span class="label">Total :</span>
+                                            <span class="value">{{ booking.total_price|floatformat:0 }} Fcfa</span>
+                                        </div>
+                                    </div>
+                                    <div class="event-actions">
+                                        <a href="#" class="btn btn-secondary"><i class="fas fa-ticket-alt"></i> Voir le billet</a>
+                                        <a href="#" class="btn btn-outline btn-sm"><i class="fas fa-times"></i> Annuler</a>
                                     </div>
                                 </div>
-                                <div class="event-actions">
-                                    <a href="#" class="btn btn-secondary"><i class="fas fa-ticket-alt"></i> Voir le billet</a>
-                                    <a href="#" class="btn btn-outline btn-sm"><i class="fas fa-times"></i> Annuler</a>
-                                </div>
                             </div>
-                        </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="empty-state">
+                                <i class="fas fa-calendar-times"></i>
+                                <h3>Aucune participation</h3>
+                                <p>Vous n'avez pas encore participé à un événement.</p>
+                                <a href="{% url 'home' %}" class="btn btn-primary">Découvrir des événements</a>
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
 
@@ -173,42 +185,53 @@
                 <div class="tab-pane" id="liked">
                     <h2>Mes événements favoris</h2>
                     <div class="events-grid">
-                        <!-- Exemple de favori -->
-                        <div class="event-card">
-                            <div class="event-image">
-                                <img src="https://images.unsplash.com/photo-1475721027785-f74eccf877e2?q=80&w=500&auto=format&fit=crop" alt="Atelier Cuisine">
-                                <div class="event-date">
-                                    <span class="day">2</span>
-                                    <span class="month">Juin</span>
+                        {% if liked_events %}
+                            {% for event in liked_events %}
+                            <div class="event-card">
+                                <a href="{% url 'event_detail' event.id %}" class="event-link">
+                                <div class="event-image">
+                                    <img src="data:image/png;base64,{{ event.image }}" alt="{{ event.title }}">
+                                    <div class="event-date">
+                                        <span class="day">{{ event.date|date:"d" }}</span>
+                                        <span class="month">{{ event.date|date:"M" }}</span>
+                                    </div>
+                                    <div class="event-badge popular">{{ event.etat|default:"Populaire" }}</div>
+                                </div>
+                                </a>
+                                <div class="event-info">
+                                    <div class="event-category">
+                                        <i class="fas fa-{% if event.type == 'Concert' %}music{% elif event.type == 'Festival' %}film{% elif event.type == 'Conférence' %}microphone-alt{% else %}calendar-alt{% endif %}"></i> {{ event.type }}
+                                    </div>
+                                    <h3 class="event-title">{{ event.title }}</h3>
+                                    <p class="event-location"><i class="fas fa-map-marker-alt"></i> {{ event.location }}</p>
+                                    <p class="event-time"><i class="far fa-clock"></i> {{ event.date|date:"H:i" }}</p>
+                                    <div class="event-footer">
+                                        <div class="event-seats">
+                                            <i class="fas fa-ticket-alt"></i>
+                                            <span {% if event.remaining_seat < 10 %}class="few-left"{% endif %}>{{ event.remaining_seat }} places restantes</span>
+                                        </div>
+                                        <div class="event-price">
+                                            <span>{{ event.price|floatformat:0 }} Fcfa</span>
+                                        </div>
+                                    </div>
+                                    <div class="event-actions">
+                                        <a href="{% url 'reservations' event.id %}" class="btn btn-primary"><i class="fas fa-ticket-alt"></i> Réserver</a>
+                                        <div class="event-likes">
+                                            <span class="likes-count">{{ event.likes_count|default:0 }}</span>
+                                            <i class="fas fa-heart"></i>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="event-info">
-                                <div class="event-category">
-                                    <i class="fas fa-utensils"></i> Atelier
-                                </div>
-                                <h3 class="event-title">Atelier Cuisine Japonaise</h3>
-                                <p class="event-location"><i class="fas fa-map-marker-alt"></i> École de Cuisine, Bordeaux</p>
-                                <p class="event-time"><i class="far fa-clock"></i> 18:30</p>
-                                <div class="event-footer">
-                                    <div class="event-seats">
-                                        <i class="fas fa-ticket-alt"></i>
-                                        <span class="few-left">3 places restantes</span>
-                                    </div>
-                                    <div class="event-price">
-                                        <span>45 €</span>
-                                    </div>
-                                </div>
-                                <div class="event-actions">
-                                    <a href="#" class="btn btn-primary"><i class="fas fa-ticket-alt"></i> Réserver</a>
-                                    <div class="event-likes">
-                                        <button class="like-btn" data-event-id="3">
-                                            <i class="fas fa-heart liked"></i>
-                                        </button>
-                                        <span class="likes-count">14</span>
-                                    </div>
-                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="empty-state">
+                                <i class="fas fa-heart-broken"></i>
+                                <h3>Aucun favori</h3>
+                                <p>Vous n'avez pas encore ajouté d'événements à vos favoris.</p>
+                                <a href="{% url 'home' %}" class="btn btn-primary">Découvrir des événements</a>
                             </div>
-                        </div>
+                        {% endif %}
                     </div>
                 </div>
 

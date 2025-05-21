@@ -34,26 +34,20 @@
             </div>
         </div>
         <div class="event-actions">
-
-            <span class="like-btn" data-event-id="{{ event.id }}">
+            {% if request.is_authenticated %}
+            <button class="like-btn" data-event-id="{{ event.id }}">
                 {% if user_has_liked %}
                     <i class="fas fa-heart text-red"></i>
                 {% else %}
                     <i class="far fa-heart"></i>
                 {% endif %}
-            </span>
-            <span class="likes-count">{{ event.likes_count }}</span>
-
-            <!-- {% if request.is_authenticated %}
-            <button class="like-btn" data-event-id="{{ event.id }}">
-                <i class="far fa-heart"></i>
             </button>
             {% else %}
             <a href="{% url 'login' %}?next={{ request.path }}" class="like-btn-login">
                 <i class="far fa-heart"></i>
             </a>
             {% endif %}
-            <span class="likes-count">{{ event.likes_count|default:0 }}</span> -->
+            <span class="likes-count">{{ event.likes_count|default:0 }}</span>
 
         </div>
     </div>
