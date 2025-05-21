@@ -331,7 +331,7 @@
 
         <div class="reservations-grid" id="reservations-grid">
             {% for reservation in reservations %}
-            <div class="reservation-card" data-name="{{ evenement.title }}" data-email="{{ reservation.email }}" data-id="{{ reservation.id }}">
+            <div class="reservation-card" data-name="{{ reservation.name }}" data-email="{{ reservation.email }}" data-id="{{ reservation.id }}">
                 <div class="profile-pic" style="background-color: {{ reservation.couleur|default:'#f57c7c' }};">{{ reservation.initiales }}</div>
                 <div class="reservation-name">{{ reservation.name }}</div>
                 <div class="reservation-email">{{ reservation.email }}</div>
