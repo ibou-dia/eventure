@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load i18n %}
 
 {% block title %}{{ event.title }} | ÉvénementsCo{% endblock %}
 
@@ -17,7 +18,7 @@
             <div class="event-meta">
                 <div class="event-meta-item">
                     <i class="fas fa-calendar"></i> 
-                    <span>{{ event.date|date:"l d F Y" }}</span>
+                    <span>{% language 'fr' %}{{ event.date|date:"l d F Y" }}{% endlanguage %}</span>
                 </div>
                 <div class="event-meta-item">
                     <i class="fas fa-clock"></i>
@@ -178,7 +179,7 @@
                         {% endif %}
                         <span>{{ comment.user }}</span>
                     </div>
-                    <div class="comment-date">{{ comment.created_at|date:"d/m/Y H:i" }}</div>
+                    <div class="comment-date">{% language 'fr' %}{{ comment.created_at|date:"d/m/Y H:i" }}{% endlanguage %}</div>
                 </div>
                 <div class="comment-content">
                     <p>{{ comment.content }}</p>

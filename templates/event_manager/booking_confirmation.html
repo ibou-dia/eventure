@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load i18n %}
 
 {% block title %}Réservation confirmée | ÉvénementsCo{% endblock %}
 
@@ -21,11 +22,11 @@
             <div class="event-meta">
                 <div class="event-meta-item">
                     <i class="fas fa-calendar"></i> 
-                    <span>{{ event.date|date:"l d F Y" }}</span>
+                    <span>{% language 'fr' %}{{ event.date|date:"l d F Y" }}{% endlanguage %}</span>
                 </div>
                 <div class="event-meta-item">
                     <i class="fas fa-clock"></i>
-                    <span>{{ event.date|date:"H:i" }}</span>
+                    <span>{% language 'fr' %}{{ event.date|date:"H:i" }}{% endlanguage %}</span>
                 </div>
                 <div class="event-meta-item">
                     <i class="fas fa-map-marker-alt"></i>
