@@ -17,6 +17,8 @@ import base64
 from django.views.decorators.csrf import csrf_exempt
 import json
 from django.core.mail import send_mail
+import qrcode
+import io
 
 
 # Fonction utilitaire pour convertir un ID en ObjectId si possible
@@ -961,34 +963,74 @@ def payment(request, event_id):
     except Exception as e:
         raise Http404(f"Erreur : {str(e)}")
 
-
-
     booking_data = request.session.get('booking_data')
+    if not booking_data:
+        raise Http404("Aucune donnée de réservation trouvée.")
+    
+    # Traitement du paiement
     if request.method == 'POST':
         numero = request.POST.get('numero')
         methode = request.POST.get('methode')
         paiement_confirme = request.POST.get('paiement_confirme') == 'true'
 
         if paiement_confirme and numero:
-            nb_place=int(booking_data["num_seats"])
-            place_restante=int(event["remaining_seat"])
-            place_restante-=nb_place
-            if place_restante>0:
-                bookings={
-                    'event_id':event["_id"],
-                    "user_id": request.user['_id'],
+            # Vérifier la disponibilité des places
+            nb_place = int(booking_data["num_seats"])
+            place_restante = int(event["remaining_seat"])
+            place_restante -= nb_place
+            
+            if place_restante >= 0:  # Changement de > à >= pour permettre d'atteindre 0 places restantes
+                # Générer un numéro de référence unique
+                reference_number = f"EVT-{methode.upper()}-{datetime.now().strftime('%y%m%d')}-"
+                
+                # Créer l'enregistrement de réservation
+                booking = {
+                    'event_id': event["_id"],
+                    'user_id': request.user['_id'],
                     'name': booking_data["name"],
                     'email': booking_data["email"],
                     'num_seats': booking_data["num_seats"],
-                    'event_title':event["title"],
+                    'event_title': event["title"],
+                    'payment_method': methode,
+                    'payment_phone': numero,
+                    'payment_status': 'confirmed',
+                    'reference_number': reference_number,
                     'created_at': datetime.utcnow(),
                 }
-                event_collection.update_one({"_id": ObjectId(event_id)}, {"$set": {"remaining_seat": place_restante}})
-                booking_collection.insert_one(bookings)
+                
+                # Mettre à jour le nombre de places restantes
+                event_collection.update_one(
+                    {"_id": ObjectId(event_id)}, 
+                    {"$set": {"remaining_seat": place_restante}}
+                )
+                
+                # Enregistrer la réservation et récupérer son ID
+                result = booking_collection.insert_one(booking)
+                booking_id = str(result.inserted_id)
+                
+                # Mettre à jour le numéro de référence avec l'ID de réservation
+                booking_collection.update_one(
+                    {"_id": result.inserted_id},
+                    {"$set": {"reference_number": reference_number + booking_id[-6:]}}
+                )
+                
+                # Mettre à jour les données de session avec les informations du paiement
+                booking_data['id'] = booking_id
+                booking_data['reference_number'] = reference_number
+                booking_data['payment_method'] = methode
+                booking_data['payment_status'] = 'confirmed'
+                request.session['booking_data'] = booking_data
+                
+                # Rediriger vers la page de confirmation
+                return redirect('booking_confirmation', event_id=event_id)
+            else:
+                # Pas assez de places disponibles
+                messages.error(request, "Désolé, il n'y a plus assez de places disponibles.")
+        else:
+            # Données de paiement invalides
+            messages.error(request, "Veuillez fournir un numéro de téléphone valide.")
 
-    if not booking_data:
-        raise Http404("Aucune donnée de réservation trouvée.")
-
+    # Si nous arrivons ici, c'est une requête GET ou le paiement a échoué
     price_per_seat = event.get("price", 0)
     total_price = int(booking_data.get("num_seats", 1)) * price_per_seat
 
@@ -1184,11 +1226,44 @@ def booking_confirmation(request, event_id):
 
     price_per_seat = event.get("price", 0)
     total_price = int(booking_data.get("num_seats", 1)) * price_per_seat
+    
+    # Création du contenu du QR code
+    booking_id = booking_data.get('id', 'TEMP-' + str(ObjectId()))
+    reference_number = booking_data.get('reference_number', 'EVT-2023-') + str(booking_id)
+    
+    qr_data = {
+        'event_id': str(event.get('_id')),
+        'event_title': event.get('title'),
+        'booking_id': booking_id,
+        'reference_number': reference_number,
+        'attendee_name': booking_data.get('name'),
+        'num_seats': booking_data.get('num_seats'),
+        'date': event.get('date').isoformat() if isinstance(event.get('date'), datetime) else str(event.get('date'))
+    }
+    
+    # Génération du QR code
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_L,
+        box_size=10,
+        border=4,
+    )
+    qr.add_data(json.dumps(qr_data))
+    qr.make(fit=True)
+
+    img = qr.make_image(fill_color="black", back_color="white")
+    
+    # Conversion de l'image en base64 pour l'affichage
+    buffer = io.BytesIO()
+    img.save(buffer, format="PNG")
+    qr_code_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
 
     context = {
         'event': event,
         'booking': booking_data,
-        'total_price': total_price
+        'total_price': total_price,
+        'qr_code_base64': qr_code_base64,
+        'reference_number': reference_number
     }
 
     return render(request, 'event_manager/booking_confirmation.html', context)

@@ -55,24 +55,28 @@
                 </div>
                 <div class="info-item">
                     <span class="label">Numéro de réservation</span>
-                    <span class="value booking-id">{{ booking.reference_number|default:"EVT-2023-" }}{{ booking.id }}</span>
+                    <span class="value booking-id">{{ reference_number|default:"EVT-2023-" }}{{ booking.id }}</span>
                 </div>
             </div>
         </div>
         
         <div class="ticket-qrcode">
-            <img src="{% static 'images/qr-code-sample.png' %}" alt="QR Code">
+            <img src="data:image/png;base64,{{ qr_code_base64 }}" alt="QR Code de votre réservation">
             <p>Présentez ce QR code à l'entrée de l'événement</p>
+            <div class="reference-number">
+                <span class="label">Référence :</span>
+                <span class="value">{{ reference_number }}</span>
+            </div>
         </div>
         
-        <div class="next-steps">
+        {% comment %} <div class="next-steps">
             <h3>Et maintenant ?</h3>
             <ul>
                 <li><i class="fas fa-envelope"></i> Un email de confirmation a été envoyé à <strong>{{ booking.email }}</strong></li>
                 <li><i class="fas fa-calendar-plus"></i> Ajoutez cet événement à votre calendrier</li>
                 <li><i class="fas fa-share-alt"></i> Partagez l'événement avec vos amis</li>
             </ul>
-        </div>
+        </div> {% endcomment %}
         
         <div class="action-buttons">
             <a href="{% url 'home' %}" class="btn btn-outline"><i class="fas fa-home"></i> Retour à l'accueil</a>

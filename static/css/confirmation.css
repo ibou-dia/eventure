@@ -204,6 +204,27 @@
     margin-top: 10px;
 }
 
+.reference-number {
+    display: inline-block;
+    margin-top: 15px;
+    padding: 8px 15px;
+    background-color: var(--primary-light);
+    border-radius: 20px;
+    font-size: 14px;
+}
+
+.reference-number .label {
+    color: var(--text-light);
+    margin-right: 5px;
+}
+
+.reference-number .value {
+    font-weight: 600;
+    color: var(--primary-color);
+    font-family: monospace;
+    letter-spacing: 1px;
+}
+
 .next-steps {
     margin: 40px 0;
     text-align: left;
