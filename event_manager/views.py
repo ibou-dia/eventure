@@ -596,6 +596,10 @@ def profile_view(request):
     error = None
     success = None
     
+    # Récupérer le message de succès stocké dans la session, s'il existe
+    if 'profile_success' in request.session:
+        success = request.session.pop('profile_success')  # Récupérer et supprimer le message
+    
     # Récupérer les événements créés par l'utilisateur
     filtered_events = list(event_collection.find({'creator_id': request.user['_id']}))
     
@@ -668,6 +672,124 @@ def profile_view(request):
                     success = "Votre mot de passe a été mis à jour avec succès"
                 else:
                     error = "Une erreur est survenue lors de la mise à jour de votre mot de passe"
+                    
+        elif action == 'delete_photo':
+            # Suppression de la photo de profil
+            try:
+                # Mettre à jour l'utilisateur dans MongoDB en retirant la photo de profil
+                if MongoUser.update_user(user['_id'], profile_image=None):
+                    # Mettre à jour la session utilisateur
+                    updated_user = user_collection.find_one({"_id": ObjectId(user['_id'])})
+                    
+                    # Convertir les ObjectId et datetime pour la sérialisation JSON
+                    def convert_for_json(obj):
+                        if isinstance(obj, dict):
+                            for key, value in list(obj.items()):
+                                if isinstance(value, ObjectId):
+                                    obj[key] = str(value)
+                                elif isinstance(value, datetime):
+                                    obj[key] = value.isoformat()
+                                elif isinstance(value, (dict, list)):
+                                    convert_for_json(value)
+                        elif isinstance(obj, list):
+                            for i, item in enumerate(obj):
+                                if isinstance(item, ObjectId):
+                                    obj[i] = str(item)
+                                elif isinstance(item, datetime):
+                                    obj[i] = item.isoformat()
+                                elif isinstance(item, (dict, list)):
+                                    convert_for_json(item)
+                    
+                    # Appliquer la conversion à tout l'objet utilisateur
+                    convert_for_json(updated_user)
+                    
+                    # Mettre à jour la session
+                    request.session['user'] = updated_user
+                    request.session.modified = True
+                    
+                    # Sauvegarder le message de succès dans la session
+                    request.session['profile_success'] = "Votre photo de profil a été supprimée"
+                    
+                    # Rediriger vers la page de profil pour rafraîchir
+                    return redirect('profile')
+                else:
+                    error = "Une erreur est survenue lors de la suppression de votre photo de profil"
+            except Exception as e:
+                error = f"Une erreur est survenue lors de la suppression de votre photo de profil : {str(e)}"
+                    
+        elif action == 'profile_photo':
+            print("\n\n==== Début du traitement de la photo de profil ====")
+            print(f"Action détectée: {action}")
+            print(f"FILES: {request.FILES}")
+            print(f"POST: {request.POST}")
+            
+            # Mise à jour de la photo de profil
+            if 'profile_photo' in request.FILES:
+                print("Fichier photo trouvé dans request.FILES")
+                uploaded_file = request.FILES['profile_photo']
+                print(f"Type de fichier: {uploaded_file.content_type}, Taille: {uploaded_file.size} bytes")
+                
+                # Vérifier que c'est bien une image
+                if not uploaded_file.content_type.startswith('image'):
+                    error = "Le fichier doit être une image"
+                else:
+                    try:
+                        # Lire le contenu de l'image
+                        image_data = uploaded_file.read()
+                        
+                        # Convertir l'image en base64 pour le stockage dans MongoDB
+                        import base64
+                        encoded_image = base64.b64encode(image_data).decode('utf-8')
+                        
+                        # Construire l'URL data pour l'affichage direct
+                        image_data_url = f"data:{uploaded_file.content_type};base64,{encoded_image}"
+                        
+                        # Mettre à jour l'utilisateur dans MongoDB
+                        if MongoUser.update_user(user['_id'], profile_image=image_data_url):
+                            # Mettre à jour la session utilisateur
+                            updated_user = user_collection.find_one({"_id": ObjectId(user['_id'])})
+                            
+                            # Convertir l'ObjectId en string pour éviter les problèmes de sérialisation JSON
+                            if updated_user and '_id' in updated_user:
+                                updated_user['_id'] = str(updated_user['_id'])
+                            
+                            # Vérifier tous les champs pour les ObjectId et datetime et les convertir en formats sérialisables
+                            def convert_for_json(obj):
+                                if isinstance(obj, dict):
+                                    for key, value in list(obj.items()):
+                                        if isinstance(value, ObjectId):
+                                            obj[key] = str(value)
+                                        elif isinstance(value, datetime):
+                                            obj[key] = value.isoformat()
+                                        elif isinstance(value, (dict, list)):
+                                            convert_for_json(value)
+                                elif isinstance(obj, list):
+                                    for i, item in enumerate(obj):
+                                        if isinstance(item, ObjectId):
+                                            obj[i] = str(item)
+                                        elif isinstance(item, datetime):
+                                            obj[i] = item.isoformat()
+                                        elif isinstance(item, (dict, list)):
+                                            convert_for_json(item)
+                            
+                            # Appliquer la conversion à tout l'objet utilisateur
+                            convert_for_json(updated_user)
+                            
+                            # Mettre à jour la session
+                            request.session['user'] = updated_user
+                            request.session.modified = True
+                            
+                            # Sauvegarder le message de succès dans la session
+                            request.session['profile_success'] = "Votre photo de profil a été mise à jour avec succès"
+                            
+                            # Rediriger vers la page de profil pour rafraîchir
+                            return redirect('profile')
+                        else:
+                            error = "Une erreur est survenue lors de la mise à jour de votre photo de profil"
+                    except Exception as e:
+                        error = f"Une erreur est survenue : {str(e)}"
+            else:
+                error = "Aucune photo n'a été sélectionnée"
     
     # Récupérer les réservations de l'utilisateur depuis MongoDB
     user_bookings = list(booking_collection.find({"user_id": request.user['_id']}))

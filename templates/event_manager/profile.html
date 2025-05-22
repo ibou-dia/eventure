@@ -34,13 +34,15 @@
         {% endif %}
 
         <div class="profile-header">
-            <div class="profile-avatar">
-                {% if user.profile_image %}
-                <img src="{{ user.profile_image }}" alt="Photo de profil">
-                {% else %}
-                <img src="https://ui-avatars.com/api/?name={{ user.first_name|default:user.username }}&background=random" alt="Photo de profil">
-                {% endif %}
-                <button class="edit-avatar-btn"><i class="fas fa-camera"></i></button>
+            <div class="profile-avatar-wrapper">
+                <div class="profile-avatar">
+                    {% if user.profile_image %}
+                    <img src="{{ user.profile_image }}" alt="Photo de profil">
+                    {% else %}
+                    <img src="https://ui-avatars.com/api/?name={{ user.first_name|default:user.username }}&background=random" alt="Photo de profil">
+                    {% endif %}
+                </div>
+                <button class="edit-avatar-btn" data-toggle="modal" data-target="#profilePhotoModal"><i class="fas fa-camera"></i></button>
             </div>
             <div class="profile-info">
                 <h1>{{ user.first_name|default:"" }} {{ user.last_name|default:"" }}</h1>
@@ -437,5 +439,137 @@
             });
         });
     });
+    
+    // Gestion de l'aperçu de l'image avant upload
+    $('#profile_photo').on('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                $('#imagePreview').attr('src', e.target.result);
+                $('.preview-container').removeClass('d-none');
+            }
+            reader.readAsDataURL(file);
+        } else {
+            $('.preview-container').addClass('d-none');
+        }
+    });
+    
+    // Gérer l'aperçu de l'image et la soumission du formulaire
+    $('#profilePhotoForm').on('submit', function(e) {
+        console.log('Formulaire en cours de soumission');
+        
+        // Vérifier si une image a été sélectionnée
+        if ($('#profile_photo')[0].files.length === 0) {
+            e.preventDefault(); // Empêcher la soumission
+            alert('Veuillez sélectionner une image avant de cliquer sur Enregistrer.');
+            return false;
+        }
+        
+        // Désactiver le bouton de soumission pour éviter les clics multiples
+        $(this).find('button[type="submit"]').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Envoi en cours...');
+        
+        // Le formulaire sera soumis automatiquement
+        console.log('Formulaire validé, envoi en cours...');
+        return true;
+    });
+    
+    // Code pour afficher l'aperçu de l'image sélectionnée
+    $(document).on('change', 'input[type="file"]', function() {
+        var input = this;
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                // Trouver l'aperçu d'image le plus proche de l'input file
+                var previewContainer = $(input).closest('form').find('.preview-container');
+                if (previewContainer.length) {
+                    previewContainer.removeClass('d-none');
+                    previewContainer.find('img').attr('src', e.target.result);
+                }
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    });
+    
+    // Soumission du formulaire de suppression de photo
+    $('#deletePhotoForm').on('submit', function() {
+        $(this).find('button[type="submit"]').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Suppression...');
+    });
 </script>
+
+<!-- Modal pour upload de photo de profil -->
+<div class="modal fade" id="profilePhotoModal" tabindex="-1" role="dialog" aria-labelledby="profilePhotoModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="profilePhotoModalLabel">Gestion de votre photo de profil</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            
+            {% if user.profile_image %}
+            <!-- Options pour les utilisateurs ayant déjà une photo de profil -->
+            <div class="modal-body">
+                <div class="text-center mb-4">
+                    <img src="{{ user.profile_image }}" alt="Photo de profil actuelle" class="current-profile-photo">
+                    <p class="mt-2 font-weight-bold">Votre photo de profil actuelle</p>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <form action="{% url 'profile' %}" method="POST" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="profile_photo">
+                            <div class="form-group">
+                                <label>Remplacer par une nouvelle photo</label>
+                                <input type="file" name="profile_photo" class="form-control-file" accept="image/*" required>
+                                <div class="preview-container mt-3 d-none">
+                                    <p>Aperçu :</p>
+                                    <img src="#" alt="Aperçu de l'image" class="img-thumbnail">
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-block">
+                                <i class="fas fa-exchange-alt"></i> Remplacer
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <form action="{% url 'profile' %}" method="POST">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="delete_photo">
+                            <div class="form-group">
+                                <label>Supprimer votre photo actuelle</label>
+                                <p class="text-danger small">Cette action est irréversible.</p>
+                            </div>
+                            <button type="submit" class="btn btn-danger btn-block">
+                                <i class="fas fa-trash-alt"></i> Supprimer
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <!-- Options pour les utilisateurs sans photo de profil -->
+            <div class="modal-body">
+                <form action="{% url 'profile' %}" method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="profile_photo">
+                    
+                    <div class="form-group">
+                        <label for="profile_photo">Choisir une nouvelle photo</label>
+                        <input type="file" id="profile_photo" name="profile_photo" class="form-control-file" accept="image/*" required>
+                    </div>
+                    
+                    <div class="form-group mt-4">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                        <button type="submit" class="btn btn-primary">Enregistrer</button>
+                    </div>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
 {% endblock %}
