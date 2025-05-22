@@ -96,6 +96,7 @@ body {
 
 .share-section {
     margin-top: 30px;
+    margin-bottom: 30px;
 }
 
 .share-section h2 {
@@ -158,8 +159,4 @@ body {
     .invitation-card {
         padding: 20px;
     }
-}
-
-a .btn-outlline{
-    margin-top: 10px;
 }
