@@ -125,44 +125,44 @@
 {#            // Hide all forms first#}
 {#            document.getElementById('waveForm').classList.remove('active');#}
 {#            document.getElementById('omForm').classList.remove('active');#}
-{#            #}
+{##}
 {#            // Show selected form#}
 {#            if (method === 'wave') {#}
 {#                document.getElementById('waveForm').classList.add('active');#}
 {#            } else if (method === 'om') {#}
 {#                document.getElementById('omForm').classList.add('active');#}
 {#            }#}
-{#            #}
+{##}
 {#            // Hide confirmation if visible#}
 {#            document.getElementById('confirmation').style.display = 'none';#}
 {#        }#}
-{#        #}
+{##}
 {#        function simulatePayment(method) {#}
 {#            // Simple validation#}
 {#            let phoneInput;#}
-{#            #}
+{##}
 {#            if (method === 'wave') {#}
 {#                phoneInput = document.getElementById('wave-phone');#}
 {#            } else {#}
 {#                phoneInput = document.getElementById('om-phone');#}
 {#            }#}
-{#            #}
+{##}
 {#            if (!phoneInput.value || phoneInput.value.length < 9) {#}
 {#                alert('Veuillez entrer un numéro de téléphone valide');#}
 {#                return;#}
 {#            }#}
-{#            #}
+{##}
 {#            // Hide payment forms#}
 {#            document.getElementById('waveForm').classList.remove('active');#}
 {#            document.getElementById('omForm').classList.remove('active');#}
-{#            #}
+{##}
 {#            // Generate random transaction ID#}
 {#            const transactionId = Math.random().toString(36).substring(2, 12).toUpperCase();#}
 {#            document.getElementById('transaction-id').textContent = transactionId;#}
-{#            #}
+{##}
 {#            // Show confirmation#}
 {#            document.getElementById('confirmation').style.display = 'block';#}
-{#            #}
+{##}
 {#            // Scroll to confirmation#}
 {#            document.getElementById('confirmation').scrollIntoView({behavior: 'smooth'});#}
 {#        }#}
