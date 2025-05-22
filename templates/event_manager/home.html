@@ -228,31 +228,11 @@
 <script src="{% static 'js/search.js' %}"></script>
 
 <script>
-    // Code pour gérer les likes (simulé pour le frontend)
+    // Fonction vide pour les boutons like - ils sont maintenant juste des indicateurs
     function initLikeButtons() {
-        document.querySelectorAll('.like-btn').forEach(button => {
-            button.addEventListener('click', function() {
-                const eventId = this.dataset.eventId;
-                const icon = this.querySelector('i');
-                const likesCount = this.parentElement.querySelector('.likes-count');
-
-                // Simuler l'alternance de l'icône de like
-                if (icon.classList.contains('far')) {
-                    icon.classList.remove('far');
-                    icon.classList.add('fas');
-                    icon.classList.add('liked');
-                    likesCount.textContent = parseInt(likesCount.textContent) + 1;
-                } else {
-                    icon.classList.remove('fas');
-                    icon.classList.remove('liked');
-                    icon.classList.add('far');
-                    likesCount.textContent = parseInt(likesCount.textContent) - 1;
-                }
-
-                // En production, ceci serait un appel AJAX au backend
-                console.log(`Like toggled for event ${eventId}`);
-            });
-        });
+        // Les boutons like ont été remplacés par des indicateurs statiques
+        // Cette fonction ne fait rien mais est conservée pour compatibilité
+        console.log('Likes button initialization skipped - now using static indicators');
     }
     
     // Initialiser les boutons de like au chargement initial

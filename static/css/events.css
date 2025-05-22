@@ -209,6 +209,18 @@
     align-items: center;
 }
 
+.like-indicator {
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: var(--text-light);
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .like-btn {
     background: none;
     border: none;
@@ -224,7 +236,7 @@
     transform: scale(1.2);
 }
 
-.like-btn i.liked {
+.like-btn i.liked, .like-indicator i.liked {
     color: var(--error-color);
     animation: heartBeat 0.5s;
 }
