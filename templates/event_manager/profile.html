@@ -167,7 +167,7 @@
                                         </div>
                                     </div>
                                     <div class="event-actions">
-                                        <a href="#" class="btn btn-secondary"><i class="fas fa-ticket-alt"></i> Voir le billet</a>
+                                        <a href="{% url 'view_ticket' booking_id=booking.id %}" class="btn btn-secondary"><i class="fas fa-ticket-alt"></i> Voir le billet</a>
                                         <a href="{% url 'cancel_booking' booking_id=booking.id %}" class="btn btn-outline btn-sm cancel-booking" data-title="{{ booking.event.title }}">
                                             <i class="fas fa-times"></i> Annuler
                                         </a>
