@@ -1,0 +1,237 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}Mon Billet | ÉvénementsCo{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/confirmation.css' %}">
+<style>
+    .action-buttons {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 2rem;
+    }
+    
+    .ticket-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+    
+    .modal-content {
+        background: white;
+        border-radius: 8px;
+        width: 90%;
+        max-width: 600px;
+        padding: 2rem;
+        position: relative;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    }
+    
+    .close-modal {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        font-size: 1.5rem;
+        cursor: pointer;
+    }
+    
+    @media print {
+        body * {
+            visibility: hidden;
+        }
+        .confirmation-box, .confirmation-box * {
+            visibility: visible;
+        }
+        .confirmation-box {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+        }
+        .action-buttons {
+            display: none;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="confirmation-container">
+    <div class="confirmation-box">
+        <div class="confirmation-icon">
+            <i class="fas fa-ticket-alt"></i>
+        </div>
+        
+        <h1>Votre Billet</h1>
+        
+        <div class="event-details">
+            <h2>{{ event.title }}</h2>
+            <div class="event-meta">
+                <div class="event-meta-item">
+                    <i class="fas fa-calendar"></i> 
+                    <span>{% language 'fr' %}{{ event.date|date:"l d F Y" }}{% endlanguage %}</span>
+                </div>
+                <div class="event-meta-item">
+                    <i class="fas fa-clock"></i>
+                    <span>{% language 'fr' %}{{ event.date|date:"H:i" }}{% endlanguage %}</span>
+                </div>
+                <div class="event-meta-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>{{ event.location }}</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="ticket-details">
+            <div class="ticket-header">
+                <h3>Détails de votre réservation</h3>
+            </div>
+            
+            <div class="ticket-info">
+                <div class="info-item">
+                    <span class="label">Nom</span>
+                    <span class="value">{{ booking.name }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Email</span>
+                    <span class="value">{{ booking.email }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Nombre de places</span>
+                    <span class="value">{{ booking.num_seats }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Numéro de réservation</span>
+                    <span class="value booking-id">{{ reference_number }}</span>
+                </div>
+                {% if booking.booking_date %}
+                <div class="info-item">
+                    <span class="label">Date de réservation</span>
+                    <span class="value">{% language 'fr' %}{{ booking.booking_date|date:"d F Y" }}{% endlanguage %}</span>
+                </div>
+                {% endif %}
+                {% if event.price and event.price > 0 %}
+                <div class="info-item">
+                    <span class="label">Prix total</span>
+                    <span class="value">{{ total_price|floatformat:0 }} FCFA</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="ticket-qrcode">
+            <img src="data:image/png;base64,{{ qr_code_base64 }}" alt="QR Code de votre réservation">
+            <p>Présentez ce QR code à l'entrée de l'événement</p>
+            <div class="reference-number">
+                <span class="label">Référence :</span>
+                <span class="value">{{ reference_number }}</span>
+            </div>
+        </div>
+        
+        <div class="action-buttons">
+            <a href="{% url 'profile' %}" class="btn btn-outline"><i class="fas fa-arrow-left"></i> Retour au profil</a>
+            <a href="#" onclick="window.print(); return false;" class="btn btn-secondary"><i class="fas fa-print"></i> Imprimer</a>
+            <a href="#" onclick="shareTicket(); return false;" class="btn btn-primary"><i class="fas fa-share-alt"></i> Partager</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Animation d'entrée
+    document.addEventListener('DOMContentLoaded', function() {
+        const confirmationBox = document.querySelector('.confirmation-box');
+        const icon = document.querySelector('.confirmation-icon');
+        
+        setTimeout(() => {
+            icon.classList.add('animate');
+        }, 300);
+        
+        // Si vous avez GSAP
+        if (typeof gsap !== 'undefined') {
+            gsap.from('.confirmation-box', {
+                y: 50,
+                opacity: 0,
+                duration: 0.8,
+                ease: 'back.out(1.2)'
+            });
+            
+            gsap.from('.ticket-details, .ticket-qrcode, .action-buttons', {
+                y: 30,
+                opacity: 0,
+                stagger: 0.2,
+                delay: 0.5,
+                duration: 0.6,
+                ease: 'power2.out'
+            });
+        }
+    });
+    
+    // Fonction pour partager le billet
+    function shareTicket() {
+        // Créer un élément de partage modal
+        const modal = document.createElement('div');
+        modal.className = 'ticket-modal';
+        
+        modal.innerHTML = `
+            <div class="modal-content">
+                <span class="close-modal" onclick="this.parentElement.parentElement.remove()">&times;</span>
+                <h3>Partager votre billet</h3>
+                <p>Vous pouvez partager ce billet par :</p>
+                <div class="share-options" style="display: flex; justify-content: space-around; margin: 2rem 0;">
+                    <a href="https://wa.me/?text=Mon billet pour {{ event.title }}: {{ request.build_absolute_uri }}" target="_blank" class="btn btn-outline" style="background: #25d366; color: white;">
+                        <i class="fab fa-whatsapp"></i> WhatsApp
+                    </a>
+                    <a href="mailto:?subject=Mon billet pour {{ event.title }}&body=Voici mon billet pour l'événement: {{ request.build_absolute_uri }}" class="btn btn-outline" style="background: #DB4437; color: white;">
+                        <i class="fas fa-envelope"></i> Email
+                    </a>
+                    <button onclick="copyTicketLink()" class="btn btn-outline" style="background: #333; color: white;">
+                        <i class="fas fa-copy"></i> Copier le lien
+                    </button>
+                </div>
+                <div id="copy-confirmation" style="text-align: center; color: green; display: none; margin-top: 1rem;">
+                    Lien copié !
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+    }
+    
+    // Fonction pour copier le lien
+    function copyTicketLink() {
+        const url = window.location.href;
+        
+        // Créer un élément temporaire
+        const tempInput = document.createElement('input');
+        tempInput.value = url;
+        document.body.appendChild(tempInput);
+        
+        // Sélectionner et copier
+        tempInput.select();
+        document.execCommand('copy');
+        
+        // Supprimer l'élément temporaire
+        document.body.removeChild(tempInput);
+        
+        // Afficher la confirmation
+        const confirmation = document.getElementById('copy-confirmation');
+        confirmation.style.display = 'block';
+        
+        // Cacher après 2 secondes
+        setTimeout(() => {
+            confirmation.style.display = 'none';
+        }, 2000);
+    }
+</script>
+{% endblock %}

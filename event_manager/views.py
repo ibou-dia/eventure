@@ -1393,6 +1393,88 @@ def reservation (request,event_id):
 
 
 @login_required
+def view_ticket(request, booking_id):
+    """Affiche le billet avec QR code pour une réservation spécifique"""
+    try:
+        # Convertir booking_id en ObjectId
+        booking_id_obj = ObjectId(booking_id)
+        
+        # Récupérer la réservation
+        booking = booking_collection.find_one({"_id": booking_id_obj})
+        
+        if not booking:
+            messages.error(request, "Cette réservation n'existe pas.")
+            return redirect('profile')
+        
+        # Vérifier que l'utilisateur connecté est bien le propriétaire de la réservation
+        # if booking.get('user_id') != str(request.user.get('_id')):
+        #     messages.error(request, "Vous n'avez pas accès à ce billet.")
+        #     return redirect('profile')
+        
+        # Récupérer les détails de l'événement
+        event_id = booking.get('event_id')
+        event = event_collection.find_one({"_id": ObjectId(event_id)})
+        
+        if not event:
+            messages.error(request, "L'événement associé à cette réservation n'existe plus.")
+            return redirect('profile')
+        
+        # Générer un numéro de référence si non existant
+        reference_number = booking.get('reference_number')
+        if not reference_number:
+            reference_number = f"EVT-{datetime.now().strftime('%Y%m')}-{str(booking_id_obj)[-6:]}"
+            
+            # Mettre à jour la réservation avec le numéro de référence
+            booking_collection.update_one(
+                {"_id": booking_id_obj},
+                {"$set": {"reference_number": reference_number}}
+            )
+            booking['reference_number'] = reference_number
+        
+        # Préparer les données pour le QR code
+        qr_data = {
+            "event": event.get('title'),
+            "reference": reference_number,
+            "name": booking.get('name'),
+            "seats": booking.get('num_seats'),
+            "date": event.get('date').strftime('%Y-%m-%d %H:%M') if isinstance(event.get('date'), datetime) else str(event.get('date'))
+        }
+        
+        # Générer le QR code
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            box_size=10,
+            border=4,
+        )
+        qr.add_data(json.dumps(qr_data))
+        qr.make(fit=True)
+        
+        # Créer une image à partir du QR code
+        img = qr.make_image(fill_color="black", back_color="white")
+        
+        # Convertir l'image en base64 pour l'affichage
+        buffer = io.BytesIO()
+        img.save(buffer)
+        qr_code_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+        
+        # Contexte pour le template
+        context = {
+            'event': event,
+            'booking': booking,
+            'qr_code_base64': qr_code_base64,
+            'reference_number': reference_number,
+            'total_price': float(event.get('price', 0)) * int(booking.get('num_seats', 1))
+        }
+        
+        return render(request, 'event_manager/view_ticket.html', context)
+        
+    except Exception as e:
+        messages.error(request, f"Une erreur est survenue: {str(e)}")
+        return redirect('profile')
+
+
+@login_required
 def delete_comment(request, comment_id):
     """Permet à un utilisateur de supprimer son propre commentaire"""
     # Récupérer le commentaire

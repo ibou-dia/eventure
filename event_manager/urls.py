@@ -20,6 +20,7 @@ urlpatterns = [
     path('event/<str:event_id>/like/', views.like_event, name='like_event'),
     path('booking/<str:event_id>/confirmation/', views.booking_confirmation, name='booking_confirmation'),
     path('booking/<str:booking_id>/cancel/', views.cancel_booking, name='cancel_booking'),
+    path('booking/<str:booking_id>/ticket/', views.view_ticket, name='view_ticket'),
     path('api/events/', views.events_paginated_api, name='events_paginated_api'),
     path('like/', views.toggle_like, name='toggle_like'),
     path('event/<str:event_id>/send/', views.send_invitations, name='send_invitations'),
