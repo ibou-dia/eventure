@@ -208,6 +208,34 @@ def event_detail(request, event_id):
     for comment in comments:
         comment['id'] = str(comment['_id'])
     
+    # Récupérer les informations du créateur de l'événement
+    creator_info = None
+    if 'creator_id' in event:
+        try:
+            creator_id = event['creator_id']
+            if isinstance(creator_id, str):
+                creator_id = ObjectId(creator_id)
+            creator = user_collection.find_one({"_id": creator_id})
+            if creator:
+                creator_info = {
+                    'username': creator.get('username', 'Utilisateur inconnu'),
+                    'first_name': creator.get('first_name', ''),
+                    'last_name': creator.get('last_name', ''),
+                    'profile_image': creator.get('profile_image', None),
+                    'id': str(creator['_id'])
+                }
+        except Exception as e:
+            print(f"Erreur lors de la récupération du créateur: {e}")
+    
+    # Si aucun créateur n'a été trouvé, fournir un créateur par défaut
+    if not creator_info:
+        creator_info = {
+            'username': 'organisateur',
+            'first_name': 'Équipe',
+            'last_name': 'ÉvénementsCo',
+            'profile_image': None,
+            'id': 'default'
+        }
     
     user_has_liked = False
     if request.is_authenticated:
@@ -221,7 +249,8 @@ def event_detail(request, event_id):
     context = {
         'event': event,
         'comments': comments,
-        "user_has_liked": user_has_liked
+        'user_has_liked': user_has_liked,
+        'creator': creator_info
     }
     
     return render(request, 'event_manager/event_detail.html', context)

@@ -110,6 +110,102 @@
     color: var(--text-color);
 }
 
+/* Styles pour la section du créateur de l'événement */
+.event-creator {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color);
+}
+
+.event-creator h2 {
+    font-size: 22px;
+    margin-bottom: 16px;
+    position: relative;
+    display: inline-block;
+}
+
+.event-creator h2:after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 0;
+    width: 40px;
+    height: 3px;
+    background: var(--gradient-primary);
+    border-radius: 3px;
+}
+
+.creator-info {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    background-color: var(--background-color);
+    border-radius: var(--border-radius);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.creator-info:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Style pour la section créateur sans lien */
+.creator-info {
+    display: flex;
+    align-items: center;
+    color: var(--text-color);
+    width: 100%;
+}
+
+.creator-avatar {
+    margin-right: 15px;
+}
+
+.creator-avatar img {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--primary-color);
+}
+
+.creator-details h3 {
+    margin: 0 0 5px 0;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.creator-username {
+    margin: 0;
+    color: var(--text-light);
+    font-size: 14px;
+}
+
+.creator-badge {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 4px 8px;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    color: white;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.creator-badge i {
+    margin-right: 4px;
+}
+
+.creator-message {
+    margin-top: 10px;
+    font-size: 14px;
+    color: var(--text-light);
+    text-align: center;
+    font-style: italic;
+}
+
 .ticket-box {
     background: linear-gradient(135deg, var(--primary-light) 0%, rgba(255, 255, 255, 0.9) 100%);
     padding: 30px;

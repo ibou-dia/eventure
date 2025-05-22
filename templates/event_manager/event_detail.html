@@ -66,6 +66,27 @@
                 <h2>À propos de cet événement</h2>
                 <p>{{ event.description }}</p>
             </div>
+            
+            {% if creator %}
+            <div class="event-creator">
+                <h2>Organisé par</h2>
+                <div class="creator-info">
+                    <div class="creator-avatar">
+                        {% if creator.profile_image %}
+                        <img src="{{ creator.profile_image }}" alt="{{ creator.username }}">
+                        {% else %}
+                        <img src="https://ui-avatars.com/api/?name={{ creator.first_name|default:creator.username }}&background=random" alt="{{ creator.username }}">
+                        {% endif %}
+                    </div>
+                    <div class="creator-details">
+                        <h3>{{ creator.first_name|default:'' }} {{ creator.last_name|default:'' }}</h3>
+                        <p class="creator-username">@{{ creator.username }}</p>
+                        <div class="creator-badge"><i class="fas fa-user-check"></i> Organisateur</div>
+                    </div>
+                </div>
+                <p class="creator-message">Vous avez des questions sur cet événement? Contactez l'organisateur!</p>
+            </div>
+            {% endif %}
         </div>
 
         <div class="event-sidebar">
