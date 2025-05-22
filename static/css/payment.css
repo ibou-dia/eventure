@@ -10,6 +10,10 @@
     margin: 0 auto;
     padding: 20px;
 }
+.method-container h3{
+    margin: 5px auto;
+    text-align: center;
+}
 .header {
     text-align: center;
     padding: 20px 0;

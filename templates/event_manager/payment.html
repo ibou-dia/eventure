@@ -231,13 +231,17 @@
     <h3>Choisissez votre méthode de paiement</h3>
     <div class="payment-methods">
         <div class="payment-option wave" onclick="showPaymentForm('wave')">
-            <div class="payment-logo"><div class="wave-logo">Wave</div></div>
-            <h3>Payer avec Wave</h3><p>Frais: 1% du montant</p>
+            <div class="payment-logo">
+                <img src="{% static 'images/wave.png' %}" alt="" width="35px" style="border-radius: 50%;">
+                <div class="wave-logo">  Wave</div>
+            </div>
+        
         </div>
         <div class="payment-option om" onclick="showPaymentForm('om')">
-            <div class="payment-logo"><div class="om-logo">Orange Money</div></div>
-            <h3>Payer avec Orange Money</h3><p>Frais: 0.8% du montant</p>
-        </div>
+            <div class="payment-logo">
+                <img src="{% static 'images/OM.png' %}" alt="" width="50px">
+                <div class="om-logo"> Orange Money</div></div>
+            </div>
     </div>
 
     <div id="waveForm" class="payment-form wave-form">
