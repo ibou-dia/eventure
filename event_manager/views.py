@@ -17,6 +17,8 @@ import base64
 from django.views.decorators.csrf import csrf_exempt
 import json
 from django.core.mail import send_mail
+import qrcode
+import io
 
 
 # Fonction utilitaire pour convertir un ID en ObjectId si possible
@@ -1184,11 +1186,44 @@ def booking_confirmation(request, event_id):
 
     price_per_seat = event.get("price", 0)
     total_price = int(booking_data.get("num_seats", 1)) * price_per_seat
+    
+    # Création du contenu du QR code
+    booking_id = booking_data.get('id', 'TEMP-' + str(ObjectId()))
+    reference_number = booking_data.get('reference_number', 'EVT-2023-') + str(booking_id)
+    
+    qr_data = {
+        'event_id': str(event.get('_id')),
+        'event_title': event.get('title'),
+        'booking_id': booking_id,
+        'reference_number': reference_number,
+        'attendee_name': booking_data.get('name'),
+        'num_seats': booking_data.get('num_seats'),
+        'date': event.get('date').isoformat() if isinstance(event.get('date'), datetime) else str(event.get('date'))
+    }
+    
+    # Génération du QR code
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_L,
+        box_size=10,
+        border=4,
+    )
+    qr.add_data(json.dumps(qr_data))
+    qr.make(fit=True)
+
+    img = qr.make_image(fill_color="black", back_color="white")
+    
+    # Conversion de l'image en base64 pour l'affichage
+    buffer = io.BytesIO()
+    img.save(buffer, format="PNG")
+    qr_code_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
 
     context = {
         'event': event,
         'booking': booking_data,
-        'total_price': total_price
+        'total_price': total_price,
+        'qr_code_base64': qr_code_base64,
+        'reference_number': reference_number
     }
 
     return render(request, 'event_manager/booking_confirmation.html', context)
