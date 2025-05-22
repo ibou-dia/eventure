@@ -1,13 +1,12 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Connexion | ÉvénementsCo{% endblock %}
+{% block title %}{{ event.title }} | ÉvénementsCo{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/payment.css' %}">
+<link rel="stylesheet" href="{% static 'css/payment.css' %}" onerror="alert('Échec de chargement de payment.css')">
 <link rel="stylesheet" href="{% static 'css/confirmation.css' %}">
 {% endblock %}
-
 {% block content %}
 <div class="confirmation-container">
     <div class="confirmation-box">
@@ -45,9 +44,9 @@
 </div>
 
 <!-- Token CSRF pour AJAX -->
-<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" class="pay-input">
 
-<div class="container">
+<div class="method-container">
     <h3>Choisissez votre méthode de paiement</h3>
     <div class="payment-methods">
         <div class="payment-option wave" onclick="showPaymentForm('wave')">
@@ -94,7 +93,6 @@
     </div>
 </div>
 {% endblock %}
-
 {% block extra_js %}
 <script>
     function showPaymentForm(method) {
@@ -122,16 +120,6 @@
             alert('Veuillez entrer un numéro de téléphone valide (9 chiffres)');
             return;
         }
-        
-        // Afficher un message de chargement
-        const loadingMessage = document.createElement('div');
-        loadingMessage.className = 'loading-message';
-        loadingMessage.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Traitement de votre paiement en cours...';
-        document.querySelector('.container').appendChild(loadingMessage);
-        
-        // Masquer les formulaires pendant le traitement
-        document.getElementById('waveForm').classList.remove('active');
-        document.getElementById('omForm').classList.remove('active');
 
         // Envoi AJAX à la vue Django
         fetch("", {
@@ -146,51 +134,21 @@
                 methode: method
             })
         }).then(response => {
-            if (response.redirected) {
-                // Si le serveur a répondu avec une redirection, suivre cette redirection
-                window.location.href = response.url;
-            } else if (response.ok) {
-                // Redirection manuelle vers la page de confirmation si la redirection automatique échoue
-                response.json().then(data => {
-                    if (data.success) {
-                        window.location.href = data.redirect_url;
-                    } else {
-                        // Afficher l'erreur
-                        alert(data.message || "Une erreur est survenue lors du traitement du paiement.");
-                        loadingMessage.remove();
-                        // Réafficher le formulaire
-                        if (method === 'wave') {
-                            document.getElementById('waveForm').classList.add('active');
-                        } else {
-                            document.getElementById('omForm').classList.add('active');
-                        }
-                    }
-                }).catch(error => {
-                    // Si la réponse n'est pas du JSON (par exemple, HTML), c'est probablement la page de confirmation
-                    window.location.reload(); // Recharger pour obtenir la redirection du serveur
-                });
+            if (response.ok) {
+                // Masquer les formulaires
+                document.getElementById('waveForm').classList.remove('active');
+                document.getElementById('omForm').classList.remove('active');
+
+                // Afficher confirmation
+                const transactionId = Math.random().toString(36).substring(2, 12).toUpperCase();
+                document.getElementById('transaction-id').textContent = transactionId;
+                document.getElementById('confirmation').style.display = 'block';
+                document.getElementById('confirmation').scrollIntoView({ behavior: 'smooth' });
             } else {
-                // Erreur serveur
-                alert("Erreur serveur lors de la confirmation du paiement.");
-                loadingMessage.remove();
-                // Réafficher le formulaire
-                if (method === 'wave') {
-                    document.getElementById('waveForm').classList.add('active');
-                } else {
-                    document.getElementById('omForm').classList.add('active');
-                }
-            }
-        }).catch(error => {
-            alert("Erreur lors de la communication avec le serveur: " + error.message);
-            loadingMessage.remove();
-            // Réafficher le formulaire
-            if (method === 'wave') {
-                document.getElementById('waveForm').classList.add('active');
-            } else {
-                document.getElementById('omForm').classList.add('active');
+                alert("Erreur serveur lors de la confirmation.");
             }
         });
     }
 </script>
-
 {% endblock %}
+
