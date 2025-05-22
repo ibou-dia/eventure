@@ -1,3 +1,4 @@
+{% load i18n %}
 {% for event in events %}
 <div class="event-card" onclick="window.location.href='{% url 'event_detail' event_id=event.id|default:forloop.counter %}'" style="cursor: pointer;">
     <div class="event-image">
@@ -10,7 +11,7 @@
         {% endif %}
         <div class="event-date">
             <span class="day">{{ event.date|date:"d" }}</span>
-            <span class="month">{{ event.date|date:"M" }}</span>
+            <span class="month">{% language 'fr' %}{{ event.date|date:"M" }}{% endlanguage %}</span>
         </div>
         {% if forloop.counter == 1 or forloop.counter == 5 %}
         <div class="event-badge popular">Populaire</div>
@@ -38,7 +39,7 @@
         </div>
         <h3 class="event-title">{{ event.title }}</h3>
         <p class="event-location"><i class="fas fa-map-marker-alt"></i> {{ event.location }}</p>
-        <p class="event-time"><i class="far fa-clock"></i> {{ event.date|date:"H:i" }}</p>
+        <p class="event-time"><i class="far fa-clock"></i> {% language 'fr' %}{{ event.date|date:"H:i" }}{% endlanguage %}</p>
         {% comment %} <div class="event-excerpt">
             {{ event.description|truncatechars:80 }}
         </div> {% endcomment %}
@@ -63,9 +64,9 @@
         <div class="event-actions">
             <a href="{% url 'event_detail' event_id=event.id|default:forloop.counter %}" class="btn btn-primary"><i class="fas fa-ticket-alt"></i> Réserver</a>
             <div class="event-likes">
-                <button class="like-btn" data-event-id="{{ event.id|default:forloop.counter }}">
+                <div class="like-indicator">
                     <i class="far fa-heart"></i>
-                </button>
+                </div>
                 <span class="likes-count">{{ event.likes_count|default:0 }}</span>
             </div>
         </div>

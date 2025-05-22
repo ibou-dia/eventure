@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load i18n %}
 
 {% block title %}{{ event.title }} | ÉvénementsCo{% endblock %}
 
@@ -17,7 +18,7 @@
             <div class="event-meta">
                 <div class="event-meta-item">
                     <i class="fas fa-calendar"></i> 
-                    <span>{{ event.date|date:"l d F Y" }}</span>
+                    <span>{% language 'fr' %}{{ event.date|date:"l d F Y" }}{% endlanguage %}</span>
                 </div>
                 <div class="event-meta-item">
                     <i class="fas fa-clock"></i>
@@ -171,17 +172,30 @@
             <div class="comment">
                 <div class="comment-header">
                     <div class="comment-author">
-                        {% if comment.user.profile_image %}
-                        <img src="{{ comment.user.profile_image }}" alt="{{ comment.user }}" class="comment-avatar">
+                        {% if comment.user_info.profile_image %}
+                        <img src="{{ comment.user_info.profile_image }}" alt="{{ comment.user_info.username }}" class="comment-avatar">
                         {% else %}
-                        <img src="https://ui-avatars.com/api/?name={{ comment.user.first_name|default:comment.user }}&background=random&rounded=true" alt="{{ comment.user }}" class="comment-avatar">
+                        <img src="https://ui-avatars.com/api/?name={{ comment.user_info.first_name|default:comment.user }}&background=random&rounded=true" alt="{{ comment.user }}" class="comment-avatar">
                         {% endif %}
-                        <span>{{ comment.user }}</span>
+                        <span>
+                            {% if comment.user_info.first_name or comment.user_info.last_name %}
+                                {{ comment.user_info.first_name }} {{ comment.user_info.last_name }}
+                            {% else %}
+                                {{ comment.user }}
+                            {% endif %}
+                        </span>
                     </div>
-                    <div class="comment-date">{{ comment.created_at|date:"d/m/Y H:i" }}</div>
+                    <div class="comment-date">{% language 'fr' %}{{ comment.created_at|date:"d/m/Y H:i" }}{% endlanguage %}</div>
                 </div>
                 <div class="comment-content">
                     <p>{{ comment.content }}</p>
+                    {% if request.is_authenticated and request.user.username == comment.user %}
+                    <div class="comment-actions">
+                        <button type="button" class="delete-comment" data-comment-id="{{ comment.id }}">
+                            <i class="fas fa-trash-alt"></i> Supprimer
+                        </button>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
             {% empty %}
@@ -192,36 +206,103 @@
         </div>
     </div>
 </div>
+
+<!-- Modale de confirmation de suppression -->
+<div class="delete-modal" id="deleteCommentModal">
+    <div class="delete-modal-content">
+        <div class="delete-modal-header">
+            <h3>Confirmation de suppression</h3>
+            <span class="close-modal">&times;</span>
+        </div>
+        <div class="delete-modal-body">
+            <p>Êtes-vous sûr de vouloir supprimer ce commentaire ?</p>
+            <p class="warning">Cette action est irréversible.</p>
+        </div>
+        <div class="delete-modal-footer">
+            <button class="btn btn-outline cancel-delete">Annuler</button>
+            <a href="#" id="confirmDeleteBtn" class="btn btn-danger">Supprimer</a>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
     document.addEventListener("DOMContentLoaded", function () {
+        // Gestion des likes
         const likeBtn = document.querySelector(".like-btn");
         const likesCount = document.querySelector(".likes-count");
 
-        likeBtn.addEventListener("click", function () {
-            const eventId = this.dataset.eventId;
+        if (likeBtn) {
+            likeBtn.addEventListener("click", function () {
+                const eventId = this.dataset.eventId;
 
-            fetch("{% url 'toggle_like' %}", {
-                method: "POST",
-                headers: {
-                    "X-CSRFToken": "{{ csrf_token }}",
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ event_id: eventId })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === "liked") {
-                    likeBtn.querySelector("i").classList.remove("far");
-                    likeBtn.querySelector("i").classList.add("fas", "text-red");
-                } else if (data.status === "unliked") {
-                    likeBtn.querySelector("i").classList.remove("fas", "text-red");
-                    likeBtn.querySelector("i").classList.add("far");
-                }
-                likesCount.textContent = data.likes_count;
+                fetch("{% url 'toggle_like' %}", {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": "{{ csrf_token }}",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ event_id: eventId })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === "liked") {
+                        likeBtn.querySelector("i").classList.remove("far");
+                        likeBtn.querySelector("i").classList.add("fas", "text-red");
+                    } else if (data.status === "unliked") {
+                        likeBtn.querySelector("i").classList.remove("fas", "text-red");
+                        likeBtn.querySelector("i").classList.add("far");
+                    }
+                    likesCount.textContent = data.likes_count;
+                });
             });
+        }
+
+        // Gestion de la modale de suppression des commentaires
+        const modal = document.getElementById("deleteCommentModal");
+        const deleteButtons = document.querySelectorAll(".delete-comment");
+        const closeButton = document.querySelector(".close-modal");
+        const cancelButton = document.querySelector(".cancel-delete");
+        const confirmButton = document.getElementById("confirmDeleteBtn");
+
+        // Fonction pour ouvrir la modale
+        function openModal(commentId) {
+            modal.style.display = "flex";
+            // Mettre à jour le lien de confirmation avec l'ID du commentaire
+            confirmButton.href = "{% url 'delete_comment' comment_id=0 %}".replace('0', commentId);
+            document.body.style.overflow = "hidden"; // Empêcher le défilement
+        }
+
+        // Fonction pour fermer la modale
+        function closeModal() {
+            modal.style.display = "none";
+            document.body.style.overflow = "auto"; // Réactiver le défilement
+        }
+
+        // Attacher les événements aux boutons de suppression
+        deleteButtons.forEach(button => {
+            button.addEventListener("click", function() {
+                const commentId = this.dataset.commentId;
+                openModal(commentId);
+            });
+        });
+
+        // Fermer la modale avec le bouton X
+        if (closeButton) {
+            closeButton.addEventListener("click", closeModal);
+        }
+
+        // Fermer la modale avec le bouton Annuler
+        if (cancelButton) {
+            cancelButton.addEventListener("click", closeModal);
+        }
+
+        // Fermer la modale en cliquant en dehors
+        window.addEventListener("click", function(event) {
+            if (event.target === modal) {
+                closeModal();
+            }
         });
     });
 </script>

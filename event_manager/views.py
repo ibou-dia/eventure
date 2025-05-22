@@ -204,9 +204,30 @@ def event_detail(request, event_id):
     # Récupérer les commentaires associés à cet événement, triés par date décroissante
     comments = list(comments_collection.find({"event_id": event_id}).sort("created_at", -1))
     
-    # Pour chaque commentaire, convertir l'ObjectId en chaîne
+    # Pour chaque commentaire, convertir l'ObjectId en chaîne et enrichir avec les infos utilisateur
     for comment in comments:
         comment['id'] = str(comment['_id'])
+        
+        # Récupérer les informations complètes de l'utilisateur
+        username = comment.get('user')
+        user_info = user_collection.find_one({"username": username})
+        
+        if user_info:
+            comment['user_info'] = {
+                'username': user_info.get('username'),
+                'first_name': user_info.get('first_name', ''),
+                'last_name': user_info.get('last_name', ''),
+                'profile_image': user_info.get('profile_image'),
+                'id': str(user_info['_id'])
+            }
+        else:
+            comment['user_info'] = {
+                'username': username,
+                'first_name': '',
+                'last_name': '',
+                'profile_image': None,
+                'id': 'unknown'
+            }
     
     # Récupérer les informations du créateur de l'événement
     creator_info = None
@@ -1295,3 +1316,32 @@ def reservation (request,event_id):
     total=int(event["total_seats"])
     return render(request,"event_manager/reservations.html",{'reservations':reservations,"evenement":event,"place_vendues":place_vendues,"total":total})
 
+
+@login_required
+def delete_comment(request, comment_id):
+    """Permet à un utilisateur de supprimer son propre commentaire"""
+    # Récupérer le commentaire
+    try:
+        comment_id_obj = ObjectId(comment_id)
+        comment = comments_collection.find_one({"_id": comment_id_obj})
+        
+        if not comment:
+            messages.error(request, "Ce commentaire n'existe pas.")
+            return redirect(request.META.get('HTTP_REFERER', 'home'))
+        
+        # Vérifier que l'utilisateur connecté est l'auteur du commentaire
+        if comment.get('user') != request.user.get('username'):
+            messages.error(request, "Vous ne pouvez pas supprimer ce commentaire.")
+            return redirect(request.META.get('HTTP_REFERER', 'home'))
+        
+        # Supprimer le commentaire
+        comments_collection.delete_one({"_id": comment_id_obj})
+        messages.success(request, "Commentaire supprimé avec succès.")
+        
+        # Rediriger vers la page de l'événement
+        event_id = comment.get('event_id')
+        return redirect('event_detail', event_id=event_id)
+    
+    except Exception as e:
+        messages.error(request, f"Une erreur est survenue: {str(e)}")
+        return redirect(request.META.get('HTTP_REFERER', 'home'))
