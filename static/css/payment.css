@@ -74,12 +74,13 @@
 .wave-logo {
     color: #1EBAE8;
     font-weight: bold;
-    font-size: 24px;
+    font-size: 16px;
+    margin-left: 10px;
 }
 .om-logo {
     color: #FF7900;
     font-weight: bold;
-    font-size: 24px;
+    font-size: 16px;
 }
 .payment-form {
     background-color: #fff;
