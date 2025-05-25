@@ -17,7 +17,6 @@ urlpatterns = [
     path('event/<str:event_id>/register/', views.register_for_event, name='register_for_event'),
     path('event/<str:event_id>/comment/', views.add_comment, name='add_comment'),
     path('comment/<str:comment_id>/delete/', views.delete_comment, name='delete_comment'),
-    path('event/<str:event_id>/like/', views.like_event, name='like_event'),
     path('booking/<str:event_id>/confirmation/', views.booking_confirmation, name='booking_confirmation'),
     path('booking/<str:booking_id>/cancel/', views.cancel_booking, name='cancel_booking'),
     path('booking/<str:booking_id>/ticket/', views.view_ticket, name='view_ticket'),

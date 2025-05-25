@@ -483,73 +483,6 @@ def add_comment(request, event_id):
     
     return redirect('event_detail', event_id=event_id)
 
-
-@login_required
-def like_event(request, event_id):
-    # Conversion de l'ID de l'événement en ObjectId
-    event_id = ObjectId(event_id)
-    
-    # Récupérer l'ID et le nom d'utilisateur (en tenant compte que request.user est un dict)
-    if isinstance(request.user, dict):
-        user_id = str(request.user.get('_id'))
-        username = request.user.get('username')
-    else:
-        # Si c'est un objet User Django standard
-        user_id = str(request.user.id)
-        username = request.user.username
-    
-    
-    # Récupérer l'événement
-    event = event_collection.find_one({"_id": event_id})
-    
-    # Initialiser la liste des likes si elle n'existe pas
-    if not event.get('likes'):
-        event_collection.update_one(
-            {"_id": event_id},
-            {"$set": {"likes": []}}
-        )
-        event['likes'] = []
-    
-    # Vérifier si l'utilisateur a déjà liké
-    user_like = next((like for like in event.get('likes', []) 
-                    if like.get('user_id') == user_id), None)
-                    
-    # Toggle like (ajouter ou supprimer)
-    if user_like:
-        # Supprimer le like
-        event_collection.update_one(
-            {"_id": event_id},
-            {"$pull": {"likes": {"user_id": user_id}}}
-        )
-        action = 'unliked'
-    else:
-        # Ajouter le like
-        like_data = {
-            "user_id": user_id,
-            "username": username,
-            "timestamp": datetime.now()
-        }
-        event_collection.update_one(
-            {"_id": event_id},
-            {"$push": {"likes": like_data}}
-        )
-        action = 'liked'
-    
-    # Récupérer le nombre de likes mis à jour
-    updated_event = event_collection.find_one({"_id": event_id})
-    likes_count = len(updated_event.get('likes', []))
-    
-    # Répondre en fonction du type de requête
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':  # Méthode plus moderne que is_ajax()
-        return JsonResponse({
-            'status': 'success', 
-            'action': action,
-            'likes_count': likes_count
-        })
-    else:
-        return redirect('event_detail', event_id=event_id)
-
-
 # Pages d'authentification
 def login_view(request):
     # Si l'utilisateur est déjà connecté, rediriger vers la page d'accueil
@@ -908,7 +841,6 @@ def profile_view(request):
         'liked_events': liked_events
     })
 
-
 @login_required
 def cancel_booking(request, booking_id):
     """Vue pour annuler une réservation existante"""
@@ -954,7 +886,7 @@ def cancel_booking(request, booking_id):
     
     return redirect('profile')
 
-
+@login_required
 def payment(request, event_id):
     try:
         event = event_collection.find_one({"_id": ObjectId(event_id)})
@@ -1042,7 +974,6 @@ def payment(request, event_id):
 
     return render(request, 'event_manager/payment.html', context)
   
-
 # API pour la pagination AJAX des événements
 def events_paginated_api(request):
     try:
