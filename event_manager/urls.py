@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from django.contrib.auth import views as auth_views
 
 urlpatterns = [
     path('', views.home, name='home'),
@@ -24,4 +25,10 @@ urlpatterns = [
     path('like/', views.toggle_like, name='toggle_like'),
     path('event/<str:event_id>/send/', views.send_invitations, name='send_invitations'),
     path('event/<str:event_id>/inviter/', views.invitation, name='invitation'),
+    
+    # URLs pour la réinitialisation de mot de passe
+    path('password_reset/', views.password_reset_view, name='password_reset'),
+    path('password_reset/done/', views.password_reset_done_view, name='password_reset_done'),
+    path('reset/<uidb64>/<token>/', views.password_reset_confirm_view, name='password_reset_confirm'),
+    path('reset/done/', views.password_reset_complete_view, name='password_reset_complete'),
 ]
