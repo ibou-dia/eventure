@@ -9,7 +9,7 @@ from django.utils import timezone
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.template.loader import render_to_string
 from bson.objectid import ObjectId
-from django.contrib.auth.hashers import check_password
+from django.contrib.auth.hashers import check_password, make_password
 from .middleware import login_required  # Utiliser notre propre décorateur login_required
 from bson.binary import Binary
 from datetime import datetime
@@ -19,6 +19,10 @@ import json
 from django.core.mail import send_mail
 import qrcode
 import io
+import uuid
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
+from django.contrib.auth.tokens import default_token_generator
 
 
 # Fonction utilitaire pour convertir un ID en ObjectId si possible
@@ -256,7 +260,7 @@ def event_detail(request, event_id):
         creator_info = {
             'username': 'organisateur',
             'first_name': 'Équipe',
-            'last_name': 'ÉvénementsCo',
+            'last_name': 'Eventure',
             'profile_image': None,
             'id': 'default'
         }
@@ -1458,7 +1462,114 @@ def delete_comment(request, event_id, comment_index):
         
         messages.success(request, "Commentaire supprimé avec succès.")
         return redirect('event_detail', event_id=event_id)
+<<<<<<< HEAD
         
     except Exception as e:
         messages.error(request, f"Une erreur est survenue: {str(e)}")
         return redirect(request.META.get('HTTP_REFERER', 'home'))
+=======
+    except Exception as e:
+        messages.error(request, f"Une erreur est survenue lors de la suppression du commentaire: {str(e)}")
+        return redirect(request.META.get('HTTP_REFERER', 'home'))
+
+
+# Fonctions pour la réinitialisation de mot de passe
+def password_reset_view(request):
+    """Vue pour demander une réinitialisation de mot de passe"""
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        
+        # Vérifier si l'utilisateur existe
+        user = user_collection.find_one({"email": email})
+        
+        if user:
+            # Générer un token unique pour la réinitialisation
+            uid = str(user['_id'])
+            token = default_token_generator.make_token(MongoUser(user))
+            
+            # Encoder l'ID utilisateur pour l'URL
+            uidb64 = urlsafe_base64_encode(force_bytes(uid))
+            
+            # Construire l'URL de réinitialisation
+            reset_url = request.build_absolute_uri(
+                reverse('password_reset_confirm', kwargs={'uidb64': uidb64, 'token': token})
+            )
+            
+            # Envoyer l'email
+            subject = 'Réinitialisation de votre mot de passe Eventure'
+            message = f"Bonjour {user.get('first_name', '')},\n\n"
+            message += f"Vous avez demandé une réinitialisation de votre mot de passe. "
+            message += f"Veuillez cliquer sur le lien suivant pour définir un nouveau mot de passe :\n\n"
+            message += f"{reset_url}\n\n"
+            message += f"Si vous n'avez pas demandé cette réinitialisation, veuillez ignorer cet email.\n\n"
+            message += f"Cordialement,\nL'équipe Eventure"
+            
+            try:
+                send_mail(
+                    subject,
+                    message,
+                    'noreply@eventure.com',  # Adresse d'expéditeur
+                    [email],
+                    fail_silently=False,
+                )
+                return redirect('password_reset_done')
+            except Exception as e:
+                return render(request, 'event_manager/password_reset.html', {
+                    'error': f"Erreur lors de l'envoi de l'email: {str(e)}"
+                })
+        else:
+            # Ne pas révéler que l'utilisateur n'existe pas pour des raisons de sécurité
+            # Rediriger comme si tout s'était bien passé
+            return redirect('password_reset_done')
+    
+    return render(request, 'event_manager/password_reset.html')
+
+
+def password_reset_done_view(request):
+    """Vue affichée après la demande de réinitialisation"""
+    return render(request, 'event_manager/password_reset_done.html')
+
+
+def password_reset_confirm_view(request, uidb64, token):
+    """Vue pour définir un nouveau mot de passe"""
+    try:
+        # Décoder l'ID utilisateur
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = user_collection.find_one({"_id": ObjectId(uid)})
+        
+        # Vérifier que l'utilisateur existe et que le token est valide
+        if user and default_token_generator.check_token(MongoUser(user), token):
+            if request.method == 'POST':
+                password = request.POST.get('password')
+                password_confirm = request.POST.get('password_confirm')
+                
+                # Vérifier que les mots de passe correspondent
+                if password != password_confirm:
+                    return render(request, 'event_manager/password_reset_confirm.html', {
+                        'error': 'Les mots de passe ne correspondent pas.'
+                    })
+                
+                # Mettre à jour le mot de passe
+                hashed_password = make_password(password)
+                user_collection.update_one(
+                    {"_id": ObjectId(uid)},
+                    {"$set": {"password": hashed_password}}
+                )
+                
+                return redirect('password_reset_complete')
+            
+            return render(request, 'event_manager/password_reset_confirm.html')
+        else:
+            return render(request, 'event_manager/password_reset_confirm.html', {
+                'error': 'Le lien de réinitialisation est invalide ou a expiré.'
+            })
+    except Exception as e:
+        return render(request, 'event_manager/password_reset_confirm.html', {
+            'error': f"Une erreur est survenue: {str(e)}"
+        })
+
+
+def password_reset_complete_view(request):
+    """Vue affichée après la réinitialisation réussie du mot de passe"""
+    return render(request, 'event_manager/password_reset_complete.html')
+>>>>>>> 5d9aaa36da0e6e00f798d3dfed8a1826a7750feb
