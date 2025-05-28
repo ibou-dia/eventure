@@ -48,7 +48,7 @@
                 <i class="far fa-heart"></i>
             </a>
             {% endif %}
-            <span class="likes-count">{{ event.likes_count|default:0 }}</span>
+            <span class="likes-count">{{ event.likes|length }}</span>
 
         </div>
     </div>

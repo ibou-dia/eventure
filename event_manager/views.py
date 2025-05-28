@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse, HttpResponseRedirect, Http404
 from django.urls import reverse
 from django.contrib import messages
-from .models import event_collection, user_collection, booking_collection, comments_collection, likes_collection, invitations_collection,MongoUser
+from .models import event_collection, user_collection, booking_collection, invitations_collection,MongoUser
 from datetime import datetime
 from django.db.models import Count
 from django.utils import timezone
@@ -205,10 +205,8 @@ def event_detail(request, event_id):
     
     # Convertir l'ObjectId en chaîne pour les URLs
     event['id'] = str(event['_id'])
-    # event['likes_count'] = likes_collection.count_documents({"event_id": event_id_obj})
-
+    
     # Récupérer les commentaires associés à cet événement, triés par date décroissante
-    #comments = list(event_collection.find({"event_id": event_id}).sort("created_at", -1))
     comments = sorted(event.get("comments", []), key=lambda x: x["created_at"], reverse=True)
 
     # Pour chaque commentaire, convertir l'ObjectId en chaîne et enrichir avec les infos utilisateur
@@ -267,13 +265,10 @@ def event_detail(request, event_id):
     
     user_has_liked = False
     if request.is_authenticated:
-        # Utiliser str(event_id_obj) pour être cohérent avec la collection de likes
-        # où nous stockons l'event_id en format string
-        user_has_liked = likes_collection.find_one({
-            "user_id": str(request.user.get('_id')),
-            "event_id": str(event_id_obj)
-        }) is not None
-    
+        user_id = str(request.user.get('_id'))
+        likes = event.get('likes', [])
+        user_has_liked = any(like.get('user').get('user_id') == user_id for like in likes)
+        
     context = {
         'event': event,
         'comments': comments,
@@ -424,9 +419,11 @@ def create_event(request):
                 "remaining_seat": total_seats,
                 "price": price,
                 'image': image_base64,
-                "likes_count":0,
                 'created_at': datetime.utcnow(),
-                "creator_id": request.user['_id']
+                "creator": {
+                    "creator_id": request.user['_id'],
+                    "creator_name": request.user['username']
+                }
             }
 
             # Insérer dans la collection MongoDB
@@ -820,7 +817,7 @@ def profile_view(request):
     participations_count = booking_collection.count_documents({"user_id": request.user['_id']})
     
     # Récupérer les likes de l'utilisateur
-    user_likes = list(likes_collection.find({"user_id": str(request.user['_id'])}))
+    user_likes = list(event_collection.find({"likes.user_id": str(request.user['_id'])}))
     likes_count = len(user_likes)
     
     # Récupérer les événements likés
@@ -1222,40 +1219,56 @@ def toggle_like(request):
             
         # Récupérer l'ID de l'utilisateur depuis l'objet request.user (MongoDB)
         user_id = str(request.user['_id'])
-        
+        username = str(request.user['username'])
         try:
             event_id_obj = ObjectId(event_id_str)
         except:
             return JsonResponse({"error": "Invalid event_id"}, status=400)
 
-    # Reste du code
-        existing_like = likes_collection.find_one({"user_id": user_id, "event_id": event_id_str})
+
+        # Récupérer l'événement
+        event = event_collection.find_one({"_id": event_id_obj})
+        if not event:
+            return JsonResponse({"error": "Event not found"}, status=404)
+
+        # Récupérer la liste des likes (ou initialiser si elle n'existe pas)
+        likes = event.get('likes', [])
+        
+        existing_like = None
+        for like in likes:
+            if (like['user']).get('user_id') == user_id:
+                existing_like = like
+                break
 
         if existing_like:
-            # Unlike
-            likes_collection.delete_one({"_id": existing_like["_id"]})
-            likes_count = likes_collection.count_documents({"event_id": event_id_str})
-            
+            # Unlike 
             event_collection.update_one(
-                {"_id": event_id_obj}, 
-                {"$set": {"likes_count": likes_count}}
+                {"_id": event_id_obj},
+                {"$pull": {"likes": {"user.user_id": user_id}}}
             )
-
+            
+            event = event_collection.find_one({"_id": event_id_obj})
+            likes = event.get("likes", [])
+            likes_count = len(likes)
             return JsonResponse({"status": "unliked", "likes_count": likes_count})
 
         else:
             # Like
-            likes_collection.insert_one({
-                "user_id": user_id,
-                "event_id": event_id_str,
-                "liked_at": datetime.now()
-            })
-            likes_count = likes_collection.count_documents({"event_id": event_id_str})
-
+            new_like = {
+                "user": {
+                    "user_id": user_id,
+                    "username": username,
+                },
+                "liked_at": datetime.now(),
+            }
+            
             event_collection.update_one(
-                {"_id": event_id_obj},  
-                {"$set": {"likes_count": likes_count}}
+                {"_id": event_id_obj},
+                {"$push": {"likes": new_like}}
             )
+            event = event_collection.find_one({"_id": event_id_obj})
+            likes = event.get("likes", [])
+            likes_count = len(likes)
 
     return JsonResponse({"status": "liked", "likes_count": likes_count})
 
@@ -1462,12 +1475,7 @@ def delete_comment(request, event_id, comment_index):
         
         messages.success(request, "Commentaire supprimé avec succès.")
         return redirect('event_detail', event_id=event_id)
-<<<<<<< HEAD
         
-    except Exception as e:
-        messages.error(request, f"Une erreur est survenue: {str(e)}")
-        return redirect(request.META.get('HTTP_REFERER', 'home'))
-=======
     except Exception as e:
         messages.error(request, f"Une erreur est survenue lors de la suppression du commentaire: {str(e)}")
         return redirect(request.META.get('HTTP_REFERER', 'home'))
@@ -1572,4 +1580,3 @@ def password_reset_confirm_view(request, uidb64, token):
 def password_reset_complete_view(request):
     """Vue affichée après la réinitialisation réussie du mot de passe"""
     return render(request, 'event_manager/password_reset_complete.html')
->>>>>>> 5d9aaa36da0e6e00f798d3dfed8a1826a7750feb
