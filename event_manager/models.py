@@ -8,7 +8,6 @@ from datetime import datetime
 event_collection = db['Event']
 user_collection = db['User']
 booking_collection = db['Booking']
-invitations_collection = db['invitation']
 
 # Classe utilitaire pour les utilisateurs MongoDB
 class MongoUser:

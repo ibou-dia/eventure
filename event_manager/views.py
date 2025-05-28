@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse, HttpResponseRedirect, Http404
 from django.urls import reverse
 from django.contrib import messages
-from .models import event_collection, user_collection, booking_collection, invitations_collection,MongoUser
+from .models import event_collection, user_collection, booking_collection, MongoUser
 from datetime import datetime
 from django.db.models import Count
 from django.utils import timezone
@@ -420,10 +420,7 @@ def create_event(request):
                 "price": price,
                 'image': image_base64,
                 'created_at': datetime.utcnow(),
-                "creator": {
-                    "creator_id": request.user['_id'],
-                    "creator_name": request.user['username']
-                }
+                "creator_id": request.user['_id']
             }
 
             # Insérer dans la collection MongoDB
@@ -1306,15 +1303,6 @@ def send_invitations(request, event_id):
 
         saved = 0
         for contact in contacts:
-            # Créer une structure d’invitation
-            invitation_data = {
-                'event_id': event_id,
-                'contact': contact,
-                'status': 'pending',
-            }
-            # Enregistrer dans la collection MongoDB
-            invitations_collection.insert_one(invitation_data)
-
             # Optionnel : envoyer email
             if '@' in contact:  # Simple détection d'email
                 try:
@@ -1331,8 +1319,7 @@ def send_invitations(request, event_id):
             saved += 1
 
         messages.success(request, f"{saved} invitations ont été envoyées et enregistrées.")
-        # return redirect('invitation_success', event_id=event_id)
-
+       
     return redirect('invitation', event_id=event_id)
 
 
