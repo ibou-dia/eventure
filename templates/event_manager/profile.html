@@ -122,7 +122,7 @@
                                     <button class="btn btn-danger disabled"><i class="fas fa-trash"></i></button>
                                     {% endif %}
                                     <div class="event-likes">
-                                        <span class="likes-count">{{ event.likes_count }}</span>
+                                        <span class="likes-count">{{ event.likes|length }}</span>
                                         <i class="fas fa-heart"></i>
                                     </div>
                                 </div>
@@ -167,8 +167,8 @@
                                         </div>
                                     </div>
                                     <div class="event-actions">
-                                        <a href="{% url 'view_ticket' booking_id=booking.id %}" class="btn btn-secondary"><i class="fas fa-ticket-alt"></i> Voir le billet</a>
-                                        <a href="{% url 'cancel_booking' booking_id=booking.id %}" class="btn btn-outline btn-sm cancel-booking" data-title="{{ booking.event.title }}">
+                                        <a href="{% url 'view_ticket' event_id=booking.id %}" class="btn btn-secondary"><i class="fas fa-ticket-alt"></i> Voir le billet</a>
+                                        <a href="{% url 'cancel_booking' event_id=booking.id %}" class="btn btn-outline btn-sm cancel-booking" data-title="{{ booking.event.title }}">
                                             <i class="fas fa-times"></i> Annuler
                                         </a>
                                     </div>
@@ -222,7 +222,7 @@
                                     <div class="event-actions">
                                         <a href="{% url 'reservations' event.id %}" class="btn btn-primary"><i class="fas fa-ticket-alt"></i> Réserver</a>
                                         <div class="event-likes">
-                                            <span class="likes-count">{{ event.likes_count|default:0 }}</span>
+                                            <span class="likes-count">{{ event.likes|length }}</span>
                                             <i class="fas fa-heart"></i>
                                         </div>
                                     </div>

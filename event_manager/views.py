@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse, HttpResponseRedirect, Http404
 from django.urls import reverse
 from django.contrib import messages
-from .models import event_collection, user_collection, booking_collection, MongoUser
+from .models import event_collection, user_collection, MongoUser
 from datetime import datetime
 from django.db.models import Count
 from django.utils import timezone
@@ -779,12 +779,14 @@ def profile_view(request):
                 error = "Aucune photo n'a été sélectionnée"
     
     # Récupérer les réservations de l'utilisateur depuis MongoDB
-    user_bookings = list(booking_collection.find({"user_id": request.user['_id']}))
-    
+    user_bookings = list(event_collection.find({"bookings.user_id": request.user['_id']}))
+    participations_count = len(user_bookings)
+
+
     # Pour chaque réservation, récupérer les informations de l'événement
     bookings = []
     for booking in user_bookings:
-        event_id = booking.get('event_id')
+        event_id = booking.get('_id')
         if event_id:
             try:
                 event_obj_id = ObjectId(event_id) if isinstance(event_id, str) else event_id
@@ -811,10 +813,9 @@ def profile_view(request):
     
     # Calculer les statistiques réelles
     events_created_count = event_collection.count_documents({"creator_id": request.user['_id']})
-    participations_count = booking_collection.count_documents({"user_id": request.user['_id']})
     
     # Récupérer les likes de l'utilisateur
-    user_likes = list(event_collection.find({"likes.user_id": str(request.user['_id'])}))
+    user_likes = list(event_collection.find({"likes.user.user_id": str(request.user['_id'])}))
     likes_count = len(user_likes)
     
     # Récupérer les événements likés
@@ -843,50 +844,69 @@ def profile_view(request):
         'liked_events': liked_events
     })
 
+
 @login_required
-def cancel_booking(request, booking_id):
-    """Vue pour annuler une réservation existante"""
+def cancel_booking(request, event_id):
+    """Vue pour annuler une réservation existante (version simplifiée)"""
     try:
         # Convertir l'ID en ObjectId
-        booking_id_obj = ObjectId(booking_id)
+        event_id_obj = ObjectId(event_id)
+        current_user_id = ObjectId(str(request.user.get('_id')))
         
-        # Vérifier que la réservation existe et appartient à l'utilisateur connecté
-        booking = booking_collection.find_one({
-            "_id": booking_id_obj,
-            "user_id": request.user['_id']
+        # Récupérer l'événement avec la réservation de l'utilisateur
+        event = event_collection.find_one({
+            "_id": event_id_obj,
+            "bookings.user_id": current_user_id
         })
         
-        if not booking:
+        if not event:
             messages.error(request, "Réservation introuvable ou vous n'êtes pas autorisé à l'annuler.")
             return redirect('profile')
         
-        # Récupérer l'événement associé
-        event_id = booking.get('event_id')
-        event = None
+        # Trouver la réservation de l'utilisateur
+        user_booking = None
+        booking_index = None
         
-        if event_id:
-            event_id_obj = ObjectId(event_id) if isinstance(event_id, str) else event_id
-            event = event_collection.find_one({"_id": event_id_obj})
+        for i, booking in enumerate(event.get('bookings', [])):
+            if str(booking.get('user_id')) == str(current_user_id):
+                user_booking = booking
+                booking_index = i
+                break
         
-        if event:
-            # Mettre à jour le nombre de places disponibles pour l'événement
-            num_seats = int(booking.get('num_seats', 1))
-            current_remaining = event.get('remaining_seat', 0)
-            new_remaining = current_remaining + num_seats
-            
-            event_collection.update_one(
-                {"_id": event_id_obj},
-                {"$set": {"remaining_seat": new_remaining}}
-            )
+        if not user_booking:
+            messages.error(request, "Votre réservation n'a pas été trouvée.")
+            return redirect('profile')
         
-        # Supprimer la réservation
-        booking_collection.delete_one({"_id": booking_id_obj})
+        # Récupérer le nombre de places à libérer
+        num_seats = int(user_booking.get('num_seats', 1))
+        
+        # Mettre à jour le nombre de places disponibles pour l'événement
+        current_remaining = event.get('remaining_seat', 0)
+        new_remaining = current_remaining + num_seats
+        
+        # Supprimer la réservation du tableau bookings et mettre à jour remaining_seat
+        event_collection.update_one(
+            {"_id": event_id_obj},
+            {
+                "$unset": {f"bookings.{booking_index}": 1},  # Marquer l'élément comme supprimé
+                "$set": {"remaining_seat": new_remaining}
+            }
+        )
+        
+        # Nettoyer le tableau en supprimant les éléments null
+        event_collection.update_one(
+            {"_id": event_id_obj},
+            {"$pull": {"bookings": None}}
+        )
         
         messages.success(request, "Votre réservation a été annulée avec succès.")
+        
     except Exception as e:
         messages.error(request, f"Une erreur est survenue lors de l'annulation de la réservation : {str(e)}")
     
     return redirect('profile')
+
+
 
 @login_required
 def payment(request, event_id):
@@ -913,13 +933,12 @@ def payment(request, event_id):
             place_restante = int(event["remaining_seat"])
             place_restante -= nb_place
             
-            if place_restante >= 0:  # Changement de > à >= pour permettre d'atteindre 0 places restantes
+            if place_restante >= 0:  
                 # Générer un numéro de référence unique
                 reference_number = f"EVT-{methode.upper()}-{datetime.now().strftime('%y%m%d')}-"
                 
                 # Créer l'enregistrement de réservation
                 booking = {
-                    'event_id': event["_id"],
                     'user_id': request.user['_id'],
                     'name': booking_data["name"],
                     'email': booking_data["email"],
@@ -935,21 +954,11 @@ def payment(request, event_id):
                 # Mettre à jour le nombre de places restantes
                 event_collection.update_one(
                     {"_id": ObjectId(event_id)}, 
-                    {"$set": {"remaining_seat": place_restante}}
+                    {
+                        "$set": {"remaining_seat": place_restante},
+                        "$push": {"bookings": booking}
+                    }
                 )
-                
-                # Enregistrer la réservation et récupérer son ID
-                result = booking_collection.insert_one(booking)
-                booking_id = str(result.inserted_id)
-                
-                # Mettre à jour le numéro de référence avec l'ID de réservation
-                booking_collection.update_one(
-                    {"_id": result.inserted_id},
-                    {"$set": {"reference_number": reference_number + booking_id[-6:]}}
-                )
-                
-                # Mettre à jour les données de session avec les informations du paiement
-                booking_data['id'] = booking_id
                 booking_data['reference_number'] = reference_number
                 booking_data['payment_method'] = methode
                 booking_data['payment_status'] = 'confirmed'
@@ -1120,17 +1129,21 @@ def register_for_event(request, event_id):
                 place_restante=event.get("remaining_seat")
                 place_restante-=int(num_seats)
                 if place_restante >=0:
-                    bookings = {
-                        "event_id": ObjectId(event_id),
-                        "user_id": request.user['_id'],
+                    booking = {
+                       "user_id": request.user['_id'],
                         "name": name,
                         "email": email,
                         "num_seats": num_seats,
-                        "event_name": event.get("title"),
                         'created_at': datetime.utcnow(),
                     }
-                    event_collection.update_one({"_id": ObjectId(event_id)}, {"$set": {"remaining_seat":place_restante}})
-                    booking_collection.insert_one(bookings)
+                    event_collection.update_one(
+                        {"_id": ObjectId(event_id)},
+                        {
+                            "$set": {"remaining_seat": place_restante},
+                            "$push": {"bookings": booking}
+                        }
+                    )
+
                     return redirect('booking_confirmation', event_id=event_id)
             
             else:
@@ -1324,59 +1337,66 @@ def send_invitations(request, event_id):
 
 
 def reservation (request,event_id):
-    reservations = list(booking_collection.find({'event_id': ObjectId(event_id)}))
     event=event_collection.find_one({"_id": ObjectId(event_id)})
+    reservations = list(event.get('bookings', []))
     place_vendues=int(event["total_seats"])-int(event["remaining_seat"])
     total=int(event["total_seats"])
     return render(request,"event_manager/reservations.html",{'reservations':reservations,"evenement":event,"place_vendues":place_vendues,"total":total})
 
 
 @login_required
-def view_ticket(request, booking_id):
-    """Affiche le billet avec QR code pour une réservation spécifique"""
+def view_ticket(request, event_id):
+    """Affiche le billet pour l'utilisateur connecté pour un événement donné"""
     try:
-        # Convertir booking_id en ObjectId
-        booking_id_obj = ObjectId(booking_id)
+        # Convertir event_id en ObjectId
+        event_id_obj = ObjectId(event_id)
+        current_user_id = ObjectId(str(request.user.get('_id')))
         
-        # Récupérer la réservation
-        booking = booking_collection.find_one({"_id": booking_id_obj})
-        
-        if not booking:
-            messages.error(request, "Cette réservation n'existe pas.")
-            return redirect('profile')
-        
-        # Vérifier que l'utilisateur connecté est bien le propriétaire de la réservation
-        # if booking.get('user_id') != str(request.user.get('_id')):
-        #     messages.error(request, "Vous n'avez pas accès à ce billet.")
-        #     return redirect('profile')
-        
-        # Récupérer les détails de l'événement
-        event_id = booking.get('event_id')
-        event = event_collection.find_one({"_id": ObjectId(event_id)})
+        # Récupérer l'événement avec la réservation de l'utilisateur
+        event = event_collection.find_one({
+            "_id": event_id_obj,
+            "bookings.user_id": current_user_id
+        })
         
         if not event:
-            messages.error(request, "L'événement associé à cette réservation n'existe plus.")
+            messages.error(request, "Aucune réservation trouvée pour cet événement.")
+            return redirect('profile')
+        
+        # Trouver la réservation de l'utilisateur
+        user_booking = None
+        booking_index = None
+        
+        for i, booking in enumerate(event.get('bookings', [])):
+            if str(booking.get('user_id')) == str(current_user_id):
+                user_booking = booking
+                booking_index = i
+                break
+        
+        if not user_booking:
+            messages.error(request, "Votre réservation n'a pas été trouvée.")
             return redirect('profile')
         
         # Générer un numéro de référence si non existant
-        reference_number = booking.get('reference_number')
+        reference_number = user_booking.get('reference_number')
         if not reference_number:
-            reference_number = f"EVT-{datetime.now().strftime('%Y%m')}-{str(booking_id_obj)[-6:]}"
+            reference_number = f"EVT-{datetime.now().strftime('%Y%m')}-{str(event_id_obj)[-6:]}-{booking_index}"
             
             # Mettre à jour la réservation avec le numéro de référence
-            booking_collection.update_one(
-                {"_id": booking_id_obj},
-                {"$set": {"reference_number": reference_number}}
+            event_collection.update_one(
+                {"_id": event_id_obj},
+                {"$set": {f"bookings.{booking_index}.reference_number": reference_number}}
             )
-            booking['reference_number'] = reference_number
+            user_booking['reference_number'] = reference_number
         
         # Préparer les données pour le QR code
         qr_data = {
-            "event": event.get('title'),
+            "event": event.get('description', 'Événement'),
             "reference": reference_number,
-            "name": booking.get('name'),
-            "seats": booking.get('num_seats'),
-            "date": event.get('date').strftime('%Y-%m-%d %H:%M') if isinstance(event.get('date'), datetime) else str(event.get('date'))
+            "name": user_booking.get('name'),
+            "email": user_booking.get('email'),
+            "seats": user_booking.get('num_seats'),
+            "date": event.get('date').strftime('%Y-%m-%d %H:%M') if isinstance(event.get('date'), datetime) else str(event.get('date')),
+            "location": event.get('location')
         }
         
         # Générer le QR code
@@ -1397,13 +1417,18 @@ def view_ticket(request, booking_id):
         img.save(buffer)
         qr_code_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
         
+        # Calculer le prix total
+        total_price = float(event.get('price', 0)) * int(user_booking.get('num_seats', 1))
+        
         # Contexte pour le template
         context = {
             'event': event,
-            'booking': booking,
+            'booking': user_booking,
             'qr_code_base64': qr_code_base64,
             'reference_number': reference_number,
-            'total_price': float(event.get('price', 0)) * int(booking.get('num_seats', 1))
+            'total_price': total_price,
+            'booking_index': booking_index,
+            'event_id': str(event_id_obj)
         }
         
         return render(request, 'event_manager/view_ticket.html', context)

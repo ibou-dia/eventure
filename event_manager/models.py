@@ -7,7 +7,7 @@ from datetime import datetime
 # Collections MongoDB
 event_collection = db['Event']
 user_collection = db['User']
-booking_collection = db['Booking']
+
 
 # Classe utilitaire pour les utilisateurs MongoDB
 class MongoUser:
