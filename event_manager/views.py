@@ -1567,3 +1567,8 @@ def password_reset_confirm_view(request, uidb64, token):
 def password_reset_complete_view(request):
     """Vue affichée après la réinitialisation réussie du mot de passe"""
     return render(request, 'event_manager/password_reset_complete.html')
+
+
+# Gestionnaire d'erreur 404 personnalisé
+def handler404(request, exception):
+    return render(request, '404.html', status=404)

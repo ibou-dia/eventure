@@ -1,0 +1,71 @@
+{% extends 'base_clean.html' %}
+
+{% block title %}Page non trouvée - 404{% endblock %}
+
+{% block extra_css %}
+<style>
+    .error-container {
+        text-align: center;
+        padding: 100px 20px;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .error-code {
+        font-size: 120px;
+        font-weight: 700;
+        color: #3f51b5;
+        margin-bottom: 0;
+        line-height: 1;
+    }
+    
+    .error-message {
+        font-size: 32px;
+        font-weight: 600;
+        margin-bottom: 20px;
+        color: #333;
+    }
+    
+    .error-description {
+        font-size: 18px;
+        color: #666;
+        margin-bottom: 30px;
+    }
+    
+    .home-button {
+        display: inline-block;
+        background-color: #3f51b5;
+        color: white;
+        padding: 12px 30px;
+        border-radius: 30px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .home-button:hover {
+        background-color: #303f9f;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        color: white;
+        text-decoration: none;
+    }
+    
+    .error-image {
+        max-width: 100%;
+        height: auto;
+        margin-bottom: 30px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="error-container">
+    {% load static %}
+    <img src="{% static 'images/404.svg' %}" alt="Erreur 404" class="error-image">
+    <h1 class="error-code">404</h1>
+    <h2 class="error-message">Page non trouvée</h2>
+    <p class="error-description">La page que vous recherchez n'existe pas ou a été déplacée.</p>
+    <a href="{% url 'home' %}" class="home-button">Retour à l'accueil</a>
+</div>
+{% endblock %}

@@ -1,0 +1,190 @@
+/* body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f5f5f5;
+    color: #333;
+} */
+.method-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+.method-container h3{
+    margin: 5px auto;
+    text-align: center;
+}
+.header {
+    text-align: center;
+    padding: 20px 0;
+    background-color: #fff;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+.header h1 {
+    color: #333;
+    margin: 0;
+}
+.event-details {
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+.event-details h2 {
+    color: #444;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
+.payment-methods {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+.payment-option {
+    flex: 1;
+    min-width: 250px;
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+.payment-option:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+.payment-option.wave {
+    border-top: 4px solid #1EBAE8;
+}
+.payment-option.om {
+    border-top: 4px solid #FF7900;
+}
+.payment-logo {
+    height: 50px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.wave-logo {
+    color: #1EBAE8;
+    font-weight: bold;
+    font-size: 16px;
+    margin-left: 10px;
+}
+.om-logo {
+    color: #FF7900;
+    font-weight: bold;
+    font-size: 16px;
+}
+.payment-form {
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    display: none;
+    margin-bottom: 20px;
+}
+.payment-form.active {
+    display: block;
+}
+.form-group {
+    margin-bottom: 15px;
+}
+.method-container label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+.me input{
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+}
+button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    width: 100%;
+    font-weight: bold;
+    margin-top: 10px;
+}
+button:hover {
+    background-color: #45a049;
+}
+.confirmation {
+    display: none;
+    background-color: #dff0d8;
+    color: #3c763d;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    margin-top: 20px;
+}
+.confirmation h3 {
+    margin-top: 0;
+}
+.wave-form button {
+    background-color: #1EBAE8;
+}
+.wave-form button:hover {
+    background-color: #189dc6;
+}
+.om-form button {
+    background-color: #FF7900;
+}
+.om-form button:hover {
+    background-color: #e56a00;
+}
+.summary {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+}
+.summary p {
+    display: flex;
+    justify-content: space-between;
+    margin: 5px 0;
+}
+.total {
+    font-weight: bold;
+    font-size: 18px;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #eee;
+}
+
+/* Style pour le message de chargement */
+.loading-message {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    font-size: 18px;
+    color: #333;
+    text-align: center;
+    padding: 20px;
+}
+
+.loading-message i {
+    margin-right: 10px;
+    color: #1EBAE8;
+    font-size: 24px;
+}
