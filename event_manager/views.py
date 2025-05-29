@@ -818,20 +818,23 @@ def profile_view(request):
     user_likes = list(event_collection.find({"likes.user.user_id": str(request.user['_id'])}))
     likes_count = len(user_likes)
     
-    # Récupérer les événements likés
     liked_events = []
     for like in user_likes:
-        event_id = like.get('event_id')
-        try:
-            event_obj_id = ObjectId(event_id) if isinstance(event_id, str) else event_id
-            event = event_collection.find_one({"_id": event_obj_id})
-            if event:
-                if '_id' in event:
-                    event['id'] = str(event['_id'])
-                liked_events.append(event)
-        except Exception as e:
-            print(f"Erreur lors de la récupération de l'événement liké: {e}")
+        event_id = like.get('_id')
+        if event_id:
+            try:
+                event_obj_id = ObjectId(event_id) if isinstance(event_id, str) else event_id
+                event = event_collection.find_one({"_id": event_obj_id})
+                if event:
+                    # Ajouter l'ID pour les templates
+                    if '_id' in event:
+                        event['id'] = str(event['_id'])
+                    
+                    liked_events.append(event)
+            except Exception as e:
+                print(f"Erreur lors de la récupération de l'événement: {e}")
     
+
     return render(request, 'event_manager/profile.html', {
         'user': user,
         'bookings': bookings,
