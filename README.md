@@ -1,65 +1,82 @@
-# Site de Réservation d'Événements
+# Eventure - Plateforme de Réservation d'Événements
 
-Ce projet est une implémentation frontend d'un site de réservation d'événements utilisant Django, en préparation à une intégration backend avec Django et MongoDB.
+Eventure est une application web complète de gestion et réservation d'événements développée avec Django et MongoDB. Cette plateforme permet aux utilisateurs de créer, découvrir et réserver des événements, avec un système de paiement intégré.
 
-## Structure du projet
+## Fonctionnalités principales
 
+### Pour les visiteurs
+- **Découverte d'événements** : Parcourir les événements disponibles avec filtres de recherche
+- **Inscription et connexion** : Création de compte et authentification sécurisée
+- **Consultation des détails** : Informations complètes sur chaque événement
+
+### Pour les utilisateurs connectés
+- **Réservation de billets** : Processus simple pour réserver des places
+- **Paiement en ligne** : Intégration avec Wave et Orange Money
+- **Billets électroniques** : Génération et envoi de billets par email
+- **Gestion de profil** : Modification des informations personnelles
+- **Historique des réservations** : Suivi des événements réservés
+
+### Pour les organisateurs
+- **Création d'événements** : Interface intuitive pour créer et publier des événements
+- **Gestion des événements** : Modification, suppression et suivi des événements créés
+- **Suivi des réservations** : Visualisation des participants à vos événements
+
+## Architecture technique
+
+### Frontend
+- **Templates Django** : Interface utilisateur responsive et moderne
+- **CSS personnalisé** : Styles adaptés à chaque type de page
+- **JavaScript** : Interactions dynamiques et validations côté client
+
+### Backend
+- **Django** : Framework web Python pour le développement rapide
+- **MongoDB** : Base de données NoSQL pour le stockage flexible des données
+- **Authentification personnalisée** : Système basé sur MongoDB au lieu du système Django par défaut
+
+### Structure de la base de données MongoDB
+
+Le projet utilise deux collections principales :
+
+1. **Collection User** :
+   - Informations d'authentification (nom d'utilisateur, email, mot de passe hashé)
+   - Données de profil (nom, prénom, etc.)
+   - Statut du compte
+
+2. **Collection Event** :
+   - Informations sur l'événement (titre, description, date, lieu)
+   - Capacité et disponibilité (nombre total de places, places restantes)
+   - Tarification
+   - Réservations imbriquées (approche document pour stocker les réservations)
 ```
-event_booking/         # Projet Django principal
-├── event_manager/     # Application Django pour la gestion des événements
-│   ├── models.py      # Modèles de données (Event, Comment, EventRegistration)
-│   ├── views.py       # Vues pour gérer les requêtes HTTP
-│   └── urls.py        # Configuration des URLs de l'application
-├── templates/         # Templates HTML
-│   ├── base.html      # Template de base avec navigation et footer
-│   └── event_manager/ # Templates spécifiques à l'application
-│       ├── home.html           # Page d'accueil avec liste des événements
-│       ├── event_detail.html   # Page de détail d'un événement
-│       ├── create_event.html   # Formulaire de création d'événement
-│       ├── login.html          # Page de connexion
-│       └── register.html       # Page d'inscription
-├── static/           # Fichiers statiques
-│   ├── css/          # Feuilles de style CSS
-│   ├── js/           # Scripts JavaScript
-│   └── images/       # Images
-└── media/           # Fichiers uploadés par les utilisateurs (photos d'événements, etc.)
-```
-
-## Fonctionnalités
-
-- **Page d'accueil** : Liste des événements avec filtres
-- **Détail d'événement** : Informations complètes, commentaires, système de réservation
-- **Création d'événement** : Formulaire pour ajouter un nouvel événement
-- **Authentification** : Pages de connexion et d'inscription (placeholder)
-- **Système de likes** : Possibilité d'aimer un événement
-- **Système de commentaires** : Ajout et affichage des commentaires
 
 ## Installation et lancement
 
-1. Assurez-vous d'avoir Python et Django installés
+1. Assurez-vous d'avoir Python, Django et MongoDB installés
 2. Clonez ce dépôt
-3. Exécutez les migrations pour initialiser la base de données:
+3. Installez les dépendances :
    ```
-   python manage.py makemigrations
-   python manage.py migrate
+   pip install -r requirements.txt
    ```
-4. Lancez le serveur de développement:
+4. Configurez la connexion MongoDB dans `event_manager/db_connection.py`
+5. Lancez le serveur de développement :
    ```
    python manage.py runserver
    ```
-5. Accédez à l'application via `http://localhost:8000`
+6. Accédez à l'application via `http://localhost:8000`
 
-## Notes de développement
+## Système de paiement
 
-- Le frontend est prêt à être intégré avec un backend Django et MongoDB
-- Les formulaires sont configurés pour communiquer avec le backend via des requêtes POST
-- Des données statiques sont simulées en attendant l'intégration backend complète
-- Les hooks et appels API sont préparés dans les fichiers JavaScript
+L'application intègre deux méthodes de paiement populaires en Afrique :
 
-## Prochaines étapes
+- **Wave** : Paiement mobile via le service Wave
+- **Orange Money** : Paiement via le service Orange Money
 
-- Implémentation complète du backend Django
-- Intégration avec MongoDB pour la persistance des données
-- Système d'authentification complet
-- Intégration d'un système de paiement
-- Optimisation pour le déploiement en production
+Le processus de paiement est simulé dans l'environnement de développement, mais peut être connecté aux API réelles en production.
+
+## Fonctionnalités à venir
+
+- Système de notifications en temps réel
+- Application mobile (iOS/Android)
+- Intégration de méthodes de paiement internationales
+- Système d'analyse pour les organisateurs d'événements
+- Fonctionnalités sociales avancées (partage, invitations)
