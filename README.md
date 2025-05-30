@@ -47,7 +47,7 @@ Le projet utilise deux collections principales :
    - Capacité et disponibilité (nombre total de places, places restantes)
    - Tarification
    - Réservations imbriquées (approche document pour stocker les réservations)
-```
+
 
 ## Installation et lancement
 
