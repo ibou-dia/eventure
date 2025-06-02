@@ -1,7 +1,7 @@
 import pymongo
 
-url ="mongodb://localhost:27017"
+url = (
+    "mongodb+srv://charbeladonis54:Fz5swlWwnxsLidjm@clusterdjango.sseokfp.mongodb.net/"
+)
 client = pymongo.MongoClient(url)
-db=client['mongodbDjango']
-
-
+db = client["mongodbDjango"]
